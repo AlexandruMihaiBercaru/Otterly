@@ -1,0 +1,59 @@
+﻿services:
+  proj:
+    image: proj
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    links:
+      - db
+  #    networks:
+  #      - proj
+
+  db:
+    image: mysql:latest
+    cap_add:
+      - SYS_NICE
+    restart: always
+    environment:
+      - MYSQL_DATABASE=proj
+      - MYSQL_RANDOM_ROOT_PASSWORD=1
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=Password123!
+    ports:
+      - "3306:3306"
+    volumes:
+      - db:/var/lib/mysql
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 55
+
+volumes:
+  db:
+    driver: local
+
+#  db:
+#    container_name: db
+#    image: mcr.microsoft.com/mssql/server:2022-latest
+#    restart: always
+#    environment:
+#      - ACCEPT_EULA="Y"
+#      - SA_PASSWORD=Password123!
+#    ports:
+#      - "1433:1433"
+#    volumes:
+#      - "/var/mssql-data:/var/opt/mssql"
+#    networks:
+#      - proj
+#
+#networks:
+#  proj:
+#    driver: bridge
