@@ -1,8 +1,10 @@
 using Proj.Configurations;
 using Proj.Data;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.ConfigureLogging();
 
 builder.ConfigureDataLayer().ConfigureIdentity();
 
@@ -40,13 +42,16 @@ app.MapRazorPages();
 try
 {
     await app.RunAsync();
+    Log.Information("Stopped cleanly");
 }
 catch (Exception e) when (e is not HostAbortedException)
 {
+    Log.Fatal(e, "Host terminated unexpectedly");
     await app.StopAsync();
 }
 finally
 {
+    Log.CloseAndFlush();
     await app.DisposeAsync();
 }
 
