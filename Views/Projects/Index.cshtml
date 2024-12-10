@@ -1,0 +1,33 @@
+@model IEnumerable<Proj.Models.Membership>;
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "My Projects";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@if (!Model.Any())
+{
+    <p>You have no projects.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Project Name</th>
+            <th>Created at</th>
+        </tr>s
+        </thead>
+        <tbody>
+        @foreach (var membership in Model)
+        {
+            <tr>
+                <td>@membership.Project.Name</td>
+                <td>@membership.Project.CreatedAt.Date.ToShortDateString()</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

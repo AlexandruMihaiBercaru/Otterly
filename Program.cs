@@ -11,7 +11,6 @@ builder.ConfigureDataLayer().ConfigureIdentity();
 builder.Services.AddControllersWithViews();
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
-
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
@@ -38,6 +37,7 @@ app.MapControllerRoute(
     pattern: "{controller}/{action}/{id?}",
     defaults: new { controller = "Home", action = "Index" });
 app.MapRazorPages();
+app.UseStatusCodePages();
 
 try
 {
