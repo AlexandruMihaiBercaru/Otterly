@@ -1,9 +1,12 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Proj.Identity;
 using Proj.Models;
 
 namespace Proj.Controllers;
 
+[AllowAnonymousOnly("/projects")]
 public class HomeController(ILogger<HomeController> logger) : Controller
 {
     public IActionResult Index()
@@ -14,8 +17,8 @@ public class HomeController(ILogger<HomeController> logger) : Controller
     public IActionResult Privacy()
     {
         return View();
-    }   
-    
+    }
+
     public IActionResult Cheatsheet()
     {
         return View();

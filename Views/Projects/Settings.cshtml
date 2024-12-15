@@ -1,0 +1,41 @@
+@model Proj.ViewModels.Projects.Settings
+
+@{
+    ViewBag.Title = "Setari";
+    Layout = "_Layout";
+}
+
+@if (TempData["message"] is not null)
+{
+    <h1>Error @TempData["message"]</h1>
+}
+
+<h2>settings</h2>
+@if (!Model.Memberships.Any())
+{
+    <p>You have no projects.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var membership in Model.Memberships)
+        {
+            <tr>
+                <td>@membership.User.FirstName @membership.User.LastName </td>
+                <td>@membership.User.Email</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    <br/>
+}
+
+<vc:invite-member-form project-id="@Model.ProjectId">
+</vc:invite-member-form>

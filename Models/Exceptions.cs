@@ -6,6 +6,8 @@ public static class Exceptions
         : Exception(
             $"User with with id {userId} doesn't have an active membership for the project with id {projectId}");
 
+    public sealed class ActiveMembership() : Exception("Cannot join an already active membership");
+    
     public sealed class EndedMembership() : Exception("Cannot end an already ended membership");
 
     public sealed class ExistingMember(Guid userId)

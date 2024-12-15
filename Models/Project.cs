@@ -10,6 +10,11 @@ public static class ProjectCommand
         [StringLength(256, MinimumLength = 1, ErrorMessage = "Descrierea este obligatorie")]
         string Summary
     );
+
+    public record InviteMember(
+        Guid ProjectId,
+        [Required, EmailAddress] string Email
+    );
 }
 
 public class Project
@@ -21,7 +26,7 @@ public class Project
     public DateTimeOffset CreatedAt { get; private init; } = DateTimeOffset.Now;
     public DateTimeOffset UpdatedAt { get; private set; } = DateTimeOffset.Now;
     public DateTimeOffset? DeletedAt { get; private set; }
-    
+
     public IEnumerable<Membership> Memberships { get; private set; } = new List<Membership>();
 
     private Project(string name, string summary, Guid organizerId)
@@ -46,5 +51,13 @@ public class Project
             throw new Exceptions.ExistingMember(userId);
 
         return Membership.Active(userId, Id);
+    }
+
+    public Membership InviteMember(Guid userId)
+    {
+        if (Memberships.Any(m => m.UserId == userId))
+            throw new Exceptions.ExistingMember(userId);
+
+        return Membership.Pending(userId, Id);
     }
 }

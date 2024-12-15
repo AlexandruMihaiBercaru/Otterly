@@ -28,7 +28,6 @@ public class MembershipConfiguration : IEntityTypeConfiguration<Membership>
 
         membership
             .Property(m => m.JoinedAt)
-            .HasColumnName("joined_at")
-            .IsRequired();
+            .HasColumnName("joined_at");
     }
 }
