@@ -1,0 +1,164 @@
+@font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 800;
+    src: url(https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono:vf@latest/latin-wght-normal.woff2) format('woff2-variations');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: 'Geist Sans';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 400;
+    src: url(https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@latest/latin-400-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@latest/latin-400-normal.woff) format('woff');
+}
+
+@font-face {
+    font-family: 'Geist Mono';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 400;
+    src: url(https://cdn.jsdelivr.net/fontsource/fonts/geist-mono@latest/latin-400-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/geist-mono@latest/latin-400-normal.woff) format('woff');
+}
+
+
+:root,
+[data-bs-theme=light] {
+    --bs-font-sans-serif: 'Geist Sans', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --bs-font-monospace: 'Geist Mono', SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --bs-body-font-family: var(--bs-font-sans-serif);
+    --bs-body-font-size: 1rem;
+    --bs-body-font-weight: 400;
+    --bs-body-line-height: 1.5;
+
+    /* Catppuccin Latte Colors */
+    --catppuccin-base: #eff1f5;
+    --catppuccin-mantle: #e6e9ef;
+    --catppuccin-crust: #dce0e8;
+    --catppuccin-text: #4c4f69;
+    --catppuccin-subtext1: #5c5f77;
+    --catppuccin-subtext0: #6c6f85;
+    --catppuccin-surface0: #ccd0da;
+    --catppuccin-surface1: #bcc0cc;
+    --catppuccin-surface2: #acb0be;
+    --catppuccin-overlay0: #9ca0b0;
+    --catppuccin-overlay1: #8c8fa1;
+    --catppuccin-overlay2: #7c7f93;
+
+    /* Accent Colors */
+    --catppuccin-blue: #1e66f5;
+    --catppuccin-lavender: #7287fd;
+    --catppuccin-green: #40a02b;
+    --catppuccin-red: #d20f39;
+    --catppuccin-yellow: #df8e1d;
+    --catppuccin-peach: #fe640b;
+    --catppuccin-pink: #ea76cb;
+    --catppuccin-teal: #179299;
+
+    /* Bootstrap Customizations */
+    --bs-body-bg: var(--catppuccin-base);
+    --bs-body-color: var(--catppuccin-text);
+    --bs-primary: var(--catppuccin-blue);
+    --bs-secondary: var(--catppuccin-lavender);
+    --bs-success: var(--catppuccin-green);
+    --bs-info: var(--catppuccin-peach);
+    --bs-warning: var(--catppuccin-yellow);
+    --bs-danger: var(--catppuccin-red);
+    --bs-light: var(--catppuccin-surface1);
+    --bs-dark: var(--catppuccin-mantle);
+
+    /* Navbar */
+    --bs-navbar-bg: var(--catppuccin-mantle);
+    --bs-navbar-color: var(--catppuccin-text);
+    --bs-navbar-brand-color: var(--catppuccin-blue);
+
+    /* Button */
+    --bs-btn-border-radius: 0.5rem;
+    --bs-btn-padding-y: 0.5rem;
+    --bs-btn-padding-x: 1rem;
+    --bs-btn-primary-bg: var(--catppuccin-blue);
+    --bs-btn-primary-border-color: var(--catppuccin-blue);
+
+    /* Input */
+    --bs-input-bg: var(--catppuccin-surface0);
+    --bs-input-border-color: var(--catppuccin-surface1);
+    --bs-input-color: var(--catppuccin-text);
+
+    /* Card */
+    --bs-card-bg: var(--catppuccin-surface0);
+    --bs-card-border-color: var(--catppuccin-surface1);
+    --bs-card-color: var(--catppuccin-text);
+
+    --bs-toast-color: var(--catppuccin-text);
+    --bs-toast-bg: var(--catppuccin-surface0);
+    --bs-toast-header-color: var(--catppuccin-text);
+    --bs-toast-header-bg: var(--catppuccin-surface0);
+}
+
+[data-bs-theme=dark] {
+    /* Catppuccin Mocha Colors */
+    --catppuccin-base: #1e1e2e;
+    --catppuccin-mantle: #181825;
+    --catppuccin-crust: #11111b;
+    --catppuccin-text: #cdd6f4;
+    --catppuccin-subtext1: #bac2de;
+    --catppuccin-subtext0: #a6adc8;
+    --catppuccin-surface0: #313244;
+    --catppuccin-surface1: #45475a;
+    --catppuccin-surface2: #585b70;
+    --catppuccin-overlay0: #6c7086;
+    --catppuccin-overlay1: #7f849c;
+    --catppuccin-overlay2: #9399b2;
+
+    /* Accent Colors */
+    --catppuccin-blue: #89b4fa;
+    --catppuccin-lavender: #b4befe;
+    --catppuccin-green: #a6e3a1;
+    --catppuccin-red: #f38ba8;
+    --catppuccin-yellow: #f9e2af;
+    --catppuccin-peach: #fab387;
+    --catppuccin-pink: #f5c2e7;
+    --catppuccin-teal: #94e2d5;
+
+    /* Bootstrap Customizations */
+    --bs-body-bg: var(--catppuccin-base);
+    --bs-body-color: var(--catppuccin-text);
+    --bs-primary: var(--catppuccin-blue);
+    --bs-secondary: var(--catppuccin-lavender);
+    --bs-success: var(--catppuccin-green);
+    --bs-info: var(--catppuccin-peach);
+    --bs-warning: var(--catppuccin-yellow);
+    --bs-danger: var(--catppuccin-red);
+    --bs-light: var(--catppuccin-surface1);
+    --bs-dark: var(--catppuccin-mantle);
+
+    /* Navbar */
+    --bs-navbar-bg: var(--catppuccin-mantle);
+    --bs-navbar-color: var(--catppuccin-text);
+    --bs-navbar-brand-color: var(--catppuccin-blue);
+
+    /* Button */
+    --bs-btn-border-radius: 0.5rem;
+    --bs-btn-padding-y: 0.5rem;
+    --bs-btn-padding-x: 1rem;
+    --bs-btn-primary-bg: var(--catppuccin-blue);
+    --bs-btn-primary-border-color: var(--catppuccin-blue);
+
+    /* Input */
+    --bs-input-bg: var(--catppuccin-surface0);
+    --bs-input-border-color: var(--catppuccin-surface1);
+    --bs-input-color: var(--catppuccin-text);
+
+    /* Card */
+    --bs-card-bg: var(--catppuccin-surface0);
+    --bs-card-border-color: var(--catppuccin-surface1);
+    --bs-card-color: var(--catppuccin-text);
+
+    --bs-toast-color: var(--catppuccin-text);
+    --bs-toast-bg: var(--catppuccin-surface0);
+    --bs-toast-header-color: var(--catppuccin-text);
+    --bs-toast-header-bg: var(--catppuccin-surface0);
+}
+

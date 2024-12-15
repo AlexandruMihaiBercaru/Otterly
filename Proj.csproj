@@ -29,4 +29,18 @@
       <Folder Include="Data\Migrations\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\Shared\Error.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Shared\_Layout.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Shared\_LoginPartial.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Shared\_ValidationScriptsPartial.cshtml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Properties\Shared\Error.cshtml" />
+      <AdditionalFiles Include="Properties\Shared\_Layout.cshtml" />
+      <AdditionalFiles Include="Properties\Shared\_LoginPartial.cshtml" />
+      <AdditionalFiles Include="Properties\Shared\_ValidationScriptsPartial.cshtml" />
+    </ItemGroup>
+
 </Project>

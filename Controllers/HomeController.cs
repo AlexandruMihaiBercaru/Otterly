@@ -14,6 +14,11 @@ public class HomeController(ILogger<HomeController> logger) : Controller
     public IActionResult Privacy()
     {
         return View();
+    }   
+    
+    public IActionResult Cheatsheet()
+    {
+        return View();
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
