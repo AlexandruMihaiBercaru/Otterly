@@ -1,7 +1,28 @@
-@model TModel
 
 @{
     Layout = "_Layout";
 }
+
+@model Proj.Models.Project
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert-success p-3 rounded-3 text-center mb-5 @ViewBag.Alert">
+        @ViewBag.Message
+    </div>
+}
+
+
+<div class="card-body">
+
+    <h3 class="card-title alert-success py-3 px-3 rounded-2">@Model.Name</h3>
+
+    <div class="card-text">@Model.Summary</div>
+
+    <span class="alert-success">@Model.CreatedAt.LocalDateTime</span>
+
+    
+
+</div>
 
 

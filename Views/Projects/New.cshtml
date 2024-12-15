@@ -1,0 +1,32 @@
+﻿@model Proj.Models.Project
+
+<div>
+    <div>
+        <div>
+            <form method="post" asp-action="New" asp-controller="Projects">
+
+                <div asp-validation-summary="All" class="text-danger"></div>
+
+                <div class="form-group">
+                    <label asp-for="Name" class="form-label">Project name</label>
+                    <input asp-for="Name" class="form-control"/>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+
+                    <br /><br />
+                </div>
+
+
+                <div class="form-group">
+                    <label asp-for="Summary" class="form-label">Short description</label>
+                    <input asp-for="Summary" class="form-control" />
+                    <span asp-validation-for="Summary" class="text-danger"></span>
+
+                    <br /><br />
+                </div>
+
+                <button class="btn btn-success" type="submit">Create</button>
+            </form>
+
+        </div>
+    </div>
+</div>

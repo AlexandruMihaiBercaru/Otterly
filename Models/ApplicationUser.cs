@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Proj.Models;
 
-public class User : IdentityUser<Guid>
+public class ApplicationUser : IdentityUser<Guid>
 {
-    public IEnumerable<Membership> Memberships { get; set; } = new List<Membership>();
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public ICollection<Membership> Memberships { get; set; } = new List<Membership>();
 
     public Membership EndMembership(Membership membership)
     {

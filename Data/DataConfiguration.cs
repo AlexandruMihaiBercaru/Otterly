@@ -49,5 +49,10 @@ public sealed class DataConfiguration
         $"server={Server};port={Port};user id={User};password={Password};database={Database};";
 }
 
-[OptionsValidator]
-public partial class ValidateDataConfiguration : IValidateOptions<DataConfiguration>;
+public partial class ValidateDataConfiguration : IValidateOptions<DataConfiguration>
+{
+    public ValidateOptionsResult Validate(string? name, DataConfiguration options)
+    {
+        return ValidateOptionsResult.Success;
+    }
+};

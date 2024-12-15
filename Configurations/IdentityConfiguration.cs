@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Proj.Data;
 using Proj.Identity;
 using Proj.Models;
@@ -13,7 +14,8 @@ public static partial class Extensions
             policy => policy.Requirements.Add(new OrganizerRequirement()));
 
         builder.Services
-            .AddDefaultIdentity<User>(opt => { opt.SignIn.RequireConfirmedAccount = true; })
+            .AddDefaultIdentity<ApplicationUser>(opt => { opt.SignIn.RequireConfirmedAccount = true; })
+            .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
         return builder;

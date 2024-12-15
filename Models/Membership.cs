@@ -2,10 +2,9 @@ namespace Proj.Models;
 
 public record Membership(Guid UserId, Guid ProjectId, DateTimeOffset? EndedAt = null)
 {
-    public Project Project { get; set; } = null!;
-    public User User { get; set; } = null!;
-
     public DateTimeOffset JoinedAt { get; private init; } = DateTimeOffset.Now;
+    public Project Project { get; set; } = null!;
+    public ApplicationUser User { get; set; } = null!;
 
     public bool IsEnded => EndedAt.HasValue;
 

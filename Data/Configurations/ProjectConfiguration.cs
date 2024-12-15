@@ -6,38 +6,55 @@ namespace Proj.Data.Configurations;
 
 public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
 {
-    public void Configure(EntityTypeBuilder<Project> proj)
+    public void Configure(EntityTypeBuilder<Project> project)
     {
-        proj.ToTable("projects");
+        project.ToTable("projects");
 
-        proj.HasKey((p) => p.Id);
-        proj
+        project.HasKey((p) => p.Id);
+         
+        project
             .Property(p => p.Id)
             .HasColumnName("id")
             .IsRequired();
 
-        proj
+        project.Property(p => p.OrganizerId)
+            .HasColumnName("organizer_id")
+            .IsRequired();
+
+        project
+            .Property(p => p.Name)
+            .IsRequired()
+            .HasColumnName("name");
+
+        project
+            .Property(p => p.CreatedAt)
+            .HasColumnName("created_at");
+
+        project
+            .Property(p => p.UpdatedAt)
+            .HasColumnName("updated_at")
+            .ValueGeneratedOnUpdate();
+
+        project
+            .Property(p => p.DeletedAt)
+            .HasColumnName("deleted_at");
+
+
+        // required one-to-many: a project has multiple memberships
+
+        project
             .HasMany(p => p.Memberships)
             .WithOne(m => m.Project)
             .HasForeignKey(m => m.ProjectId)
             .IsRequired();
 
-        proj
-            .Property(p => p.Name)
-            .IsRequired()
-            .HasColumnName("name");
+        // required one-to-many: an user can create multiple projects
+        // each project must have an organizer (must be createad by an user)
 
-        proj
-            .Property(p => p.CreatedAt)
-            .HasColumnName("created_at");
-
-        proj
-            .Property(p => p.UpdatedAt)
-            .HasColumnName("updated_at")
-            .ValueGeneratedOnUpdate();
-
-        proj
-            .Property(p => p.DeletedAt)
-            .HasColumnName("deleted_at");
+        project
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(p => p.OrganizerId)
+            .IsRequired();
     }
 }

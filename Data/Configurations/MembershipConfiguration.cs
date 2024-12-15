@@ -8,7 +8,7 @@ public class MembershipConfiguration : IEntityTypeConfiguration<Membership>
 {
     public void Configure(EntityTypeBuilder<Membership> membership)
     {
-        membership.ToTable("membership");
+        membership.ToTable("memberships");
 
         membership.HasKey(m => new { m.UserId, m.ProjectId });
 

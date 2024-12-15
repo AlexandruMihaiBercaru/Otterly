@@ -8,19 +8,23 @@ using Proj.Models;
 
 namespace Proj.Controllers;
 
-[Authorize, Route("projects")]
+[Route("projects")]
 public class ProjectsController : Controller
 {
     private readonly ApplicationDbContext _context;
-    private readonly UserManager<User> _userManager;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
 
-    public ProjectsController(ApplicationDbContext context, UserManager<User> userManager)
+    public ProjectsController(ApplicationDbContext context, 
+        UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole<Guid>> roleManager)
     {
         _context = context;
         _userManager = userManager;
+        _roleManager = roleManager;
     }
 
-    [HttpGet]
+    [HttpGet("index")]
     public async Task<IActionResult> Index()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -42,24 +46,35 @@ public class ProjectsController : Controller
         return View(projects);
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("show/{id:guid}")]
     public IActionResult Show([FromRoute] Guid id)
     {
+        if (TempData.ContainsKey("message"))
+        {
+            ViewBag.Message = TempData["message"];
+            ViewBag.Alert = TempData["messageType"];
+        }
+
         var project = _context.Projects
             .Where(p => !p.DeletedAt.HasValue)
             .FirstOrDefault(p => p.Id == id);
         if (project is null)
         {
             return NotFound();
-        }
+        } 
 
         return View(project);
     }
 
+    [HttpGet("new")]
+    public IActionResult New()
+    {
+        return View();
+    }
+
     [HttpPost("new")]
-    public async Task<IActionResult> New(
-        [FromBody] ProjectCommand.Create cmd,
-        CancellationToken ct = default)
+    public async Task<IActionResult> New(ProjectCommand.Create cmd,
+                                         CancellationToken ct = default)
     {
         var user = await _userManager.GetUserAsync(User);
         if (user is null)
@@ -67,20 +82,32 @@ public class ProjectsController : Controller
             return Unauthorized();
         }
 
-        var (project, membership) = Project.From(cmd, user!.Id);
+        if (ModelState.IsValid)
+        {
+            var (project, membership) = Project.From(cmd, user!.Id);
+            _context.Projects.Add(project);
+            _context.Memberships.Add(membership);
+            await _context.SaveChangesAsync(ct);
 
-        _context.Projects.Add(project);
-        _context.Memberships.Add(membership);
-        await _context.SaveChangesAsync(ct);
+            TempData["message"] = "The project has been successfully added.";
+            TempData["messageType"] = "alert-success";
 
-        return RedirectToAction("Show");
+            return Redirect("/projects/show/" + project.Id);
+        }
+        else
+        {
+            return View();
+        }
+           
     }
+
 
     [HttpPost("{projectId:guid}/delete")]
     [Authorize(Policy = OrganizerRequirement.Policy)]
     public async Task<IActionResult> Delete([FromRoute] Guid projectId,
-        CancellationToken ct = default)
+                                            CancellationToken ct = default)
     {
+        
         return View();
     }
 }

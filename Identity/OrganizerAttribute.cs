@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Proj.Data;
 using Proj.Models;
+using Task = System.Threading.Tasks.Task;
+
 
 namespace Proj.Identity;
 
@@ -13,10 +15,10 @@ public class OrganizerRequirement : IAuthorizationRequirement
 public class OrganizerAuthorizationHandler : AuthorizationHandler<OrganizerRequirement>
 {
     private readonly ApplicationDbContext _context;
-    private readonly UserManager<User> _userManager;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public OrganizerAuthorizationHandler(ApplicationDbContext context,
-        UserManager<User> userManager)
+        UserManager<ApplicationUser> userManager)
     {
         _context = context;
         _userManager = userManager;

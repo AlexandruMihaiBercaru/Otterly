@@ -17,6 +17,7 @@ else
         <thead>
         <tr>
             <th>Project Name</th>
+            <th>Summary</th>
             <th>Created at</th>
         </tr>s
         </thead>
@@ -25,9 +26,14 @@ else
         {
             <tr>
                 <td>@membership.Project.Name</td>
+                <td>@membership.Project.Summary</td>
                 <td>@membership.Project.CreatedAt.Date.ToShortDateString()</td>
+                    <td><a class="btn btn-success" asp-controller="Projects" asp-action="Show" asp-route-id="@membership.ProjectId">View project</a></td>
             </tr>
         }
         </tbody>
     </table>
+    <br />
+    
 }
+<a class="btn btn-success"  asp-controller="Projects" asp-action="New">Create a project</a>
