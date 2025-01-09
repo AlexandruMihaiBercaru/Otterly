@@ -6,21 +6,176 @@
 
 @if (ViewBag.Message != null)
 {
-    <div class="alert-success p-3 rounded-3 text-center mb-5 @ViewBag.Alert">
+    <div class="alert @ViewBag.Alert alert-dismissible fade show p-3 rounded-3 mb-5" role="alert">
         @ViewBag.Message
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
 
-
-<div class="card-body">
-
-    <h3 class="card-title alert-success py-3 px-3 rounded-2">@Model.Name</h3>
-
-    <div class="card-text">@Model.Summary</div>
-
-    <span class="alert-success">@Model.CreatedAt.LocalDateTime</span>
+<h3><b>@Model.Name</b></h3>
 
 
+<div class="container mt-5">
+
+    <div class="row">
+
+        <div class="col-12">
+
+            <div class="card">
+                <div class="card-header">
+                    <p>Owner:<b><!--get the email (or first name + last name) of the User--></b></p>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title"><b>@Model.Name</b></h3>
+                    <p class="card-text">@Model.Summary</p>
+                    <!--Only if the current user is Admin or is the organizer of the project, then show the edit button-->
+                    <a asp-controller="Projects" asp-action="Edit" class="btn btn-primary">Edit</a>
+                </div>
+                <div class="card-footer text-body-secondary">
+                    <small><i class="float-end">Last updated: @Model.UpdatedAt.LocalDateTime</i></small>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="row gx-5">
+
+        <div class="col-md-4">
+            <div class="card">
+                <h5 class="card-header text-center text-bg-secondary border-secondary">Not Started</h5>
+                <div class="card-body">                 
+                    <ul class="list-group list-group-flush p-2">
+
+                        @foreach(var task in Model.Tasks)
+                        {
+                            if (task.Status.Equals("Not Started"))
+                            {
+                                <li class="list-group-item">
+
+                                    <div class="d-flex justify-content-between flex-row mt-5">
+
+                                        <div class="dropstart"> <!--button for changing the status-->
+                                            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <!--<span class="visually-hidden">Toggle Dropdown</span>-->
+                                            </button>
+                                            <ul class="dropdown-menu"> <!--modify the links!-->
+                                                <li><h6 class="dropdown-header">Change the status</h6></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item" href="#">Not Started</a></li>
+                                                <li><a class="dropdown-item" href="#">In progress</a></li>
+                                                <li><a class="dropdown-item" href="#">Done</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="card-text">
+                                            @task.Name
+                                        </div>                                        
+                                        <div>
+                                            <a class="btn btn-success" asp-controller="Tasks" asp-action="Edit" asp-route-id="@task.Id">Edit</a>
+                                        </div>
+
+                                    </div>
+
+                                </li>
+                            }
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <h5 class="card-header text-center text-bg-secondary border-secondary">In Progress</h5>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush p-2">
+
+                        @foreach (var task in Model.Tasks)
+                        {
+                            if (task.Status.Equals("In Progress"))
+                            {
+                                <li class="list-group-item">
+
+                                    <div class="d-flex justify-content-between flex-row mt-5">
+
+                                        <div class="dropstart">
+                                            <!--button for changing the status-->
+                                            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <!--<span class="visually-hidden">Toggle Dropdown</span>-->
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <!--modify the links!-->
+                                                <li><h6 class="dropdown-header">Change the status</h6></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item" href="#">Not Started</a></li>
+                                                <li><a class="dropdown-item" href="#">In progress</a></li>
+                                                <li><a class="dropdown-item" href="#">Done</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="card-text">
+                                            @task.Name
+                                        </div>
+                                        <div>
+                                            <a class="btn btn-success" asp-controller="Tasks" asp-action="Edit" asp-route-id="@task.Id">Edit</a>
+                                        </div>
+
+                                    </div>
+
+                                </li>
+                            }
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <h5 class="card-header text-center text-bg-secondary border-secondary">Done</h5>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush p-2">
+
+                        @foreach (var task in Model.Tasks)
+                        {
+                            if (task.Status.Equals("Done"))
+                            {
+                                <li class="list-group-item">
+
+                                    <div class="d-flex justify-content-between flex-row mt-5">
+
+                                        <div class="dropstart">
+                                            <!--button for changing the status-->
+                                            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <!--<span class="visually-hidden">Toggle Dropdown</span>-->
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <!--modify the links!-->
+                                                <li><h6 class="dropdown-header">Change the status</h6></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item" href="#">Not Started</a></li>
+                                                <li><a class="dropdown-item" href="#">In progress</a></li>
+                                                <li><a class="dropdown-item" href="#">Done</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="card-text">
+                                            @task.Name
+                                        </div>
+                                        <div>
+                                            <a class="btn btn-success" asp-controller="Tasks" asp-action="Edit" asp-route-id="@task.Id">Edit</a>
+                                        </div>
+
+                                    </div>
+
+                                </li>
+                            }
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
 
 </div>
 

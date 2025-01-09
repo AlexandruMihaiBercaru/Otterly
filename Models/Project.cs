@@ -27,6 +27,8 @@ public class Project
     public DateTimeOffset UpdatedAt { get; private set; } = DateTimeOffset.Now;
     public DateTimeOffset? DeletedAt { get; private set; }
 
+
+    public ICollection<Task>? Tasks { get; set; } = new List<Task>();
     public IEnumerable<Membership> Memberships { get; private set; } = new List<Membership>();
 
     private Project(string name, string summary, Guid organizerId)

@@ -60,7 +60,7 @@ public class ProjectsController : Controller
             ViewBag.Alert = TempData["messageType"];
         }
 
-        var project = _context.Projects
+        var project = _context.Projects.Include("Tasks")
             .Where(p => !p.DeletedAt.HasValue)
             .FirstOrDefault(p => p.Id == id);
         if (project is null)
@@ -84,6 +84,7 @@ public class ProjectsController : Controller
         {
             return Unauthorized();
         }
+
 
         if (!ModelState.IsValid)
         {
@@ -143,11 +144,8 @@ public class ProjectsController : Controller
 
         var invitee = await _userManager.FindByEmailAsync(cmd.Email);
         if (invitee is null)
-        {
-            ModelState.AddModelError("Email", $"User with email address {cmd.Email} does not exist.");
-            TempData["toastError"] = $"User with email address {cmd.Email} does not exist.";
-            _logger.LogInformation("invitee not found");
-
+        {            
+            TempData["toastError"] = $"User with email address {cmd.Email} does not exist.";           
             return RedirectToAction("Settings", new { projectId });
         }
 

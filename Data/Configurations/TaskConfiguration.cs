@@ -42,8 +42,8 @@ public sealed class TaskConfiguration : IEntityTypeConfiguration<Models.Task>
         // one-to-many relation: a projects has multiple tasks
 
         task
-            .HasOne<Project>()
-            .WithMany()
+            .HasOne<Project>(t => t.Project)
+            .WithMany(p => p.Tasks)
             .HasForeignKey(t => t.ProjectId)
             .IsRequired();
 
@@ -62,9 +62,5 @@ public sealed class TaskConfiguration : IEntityTypeConfiguration<Models.Task>
             .WithMany(t => t.Subtasks)
             .HasForeignKey(t => t.ParentTaskId)
             .IsRequired(false);
-
-
-
-
     }
 }

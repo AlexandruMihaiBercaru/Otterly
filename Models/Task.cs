@@ -39,6 +39,9 @@ public class Task : IValidatableObject
     public Guid? ParentTaskId { get; init; }
     public Guid? LabelId { get; init; }
 
+
+    public Project Project { get; set; }
+
     // navigation property referencing the parent task (if it exists)
     [NotMapped] public Task? ParentTask { get; set; }
 
