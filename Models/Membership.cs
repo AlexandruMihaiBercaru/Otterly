@@ -6,8 +6,8 @@ public record Membership(
     DateTimeOffset? EndedAt = null)
 {
     public DateTimeOffset? JoinedAt { get; private init; }
-    public Project Project { get; set; } = null!;
-    public ApplicationUser User { get; set; } = null!;
+    public Project? Project { get; set; } = null!;
+    public ApplicationUser? User { get; set; } = null!;
 
     public bool IsEnded => EndedAt.HasValue;
 

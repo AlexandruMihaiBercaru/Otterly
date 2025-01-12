@@ -21,7 +21,9 @@ public class Project
 {
     public Guid Id { get; private init; } = Guid.NewGuid();
     public Guid OrganizerId { get; private init; }
+    
     public string Name { get; private set; }
+    
     public string Summary { get; private set; }
     public DateTimeOffset CreatedAt { get; private init; } = DateTimeOffset.Now;
     public DateTimeOffset UpdatedAt { get; private set; } = DateTimeOffset.Now;

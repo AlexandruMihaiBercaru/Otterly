@@ -40,13 +40,16 @@ public class Task : IValidatableObject
     public Guid? LabelId { get; init; }
 
 
-    public Project Project { get; set; }
+    public Project? Project { get; set; }
 
     // navigation property referencing the parent task (if it exists)
     [NotMapped] public Task? ParentTask { get; set; }
 
     // collection navigation containing the subtasks for each task
     [NotMapped] public ICollection<Task> Subtasks { get; } = new List<Task>();
+
+    public ICollection<Assignment>? Assignments { get; set; }
+
 
     Task()
     {

@@ -1,0 +1,61 @@
+﻿@model Proj.Models.Task
+
+
+<div class="card-body">
+
+    <h3 class="card-title alert-success py-3 px-3 rounded-2">@Model.Name</h3>
+
+    <br />
+
+    <a href="@Model.Id/edit" class="btn btn-primary">Edit task</a>
+
+
+    <div class="card-text">@Html.Raw(Model.Description)</div>
+
+    <div class="d-flex justify-content-between flex-row mt-5">
+
+
+        <small class="alert-success"><i>Starting on: @Model.StartDate.Date.ToShortDateString()</i></small>
+
+        <small class="alert-success"><i>Ending on: @Model.EndDate.Date.ToShortDateString()</i></small>
+
+    </div>
+    <div>
+        @if (new string[]{".png", ".jpeg", ".jpg"}.Any(m => Model.MediaUrl.Contains(m)))
+        {
+            <img src="@Model.MediaUrl" alt="Embedded image" width="550" height="300"/>
+        }
+        else if (new string[] { ".mp4", ".mov" }.Any(m => Model.MediaUrl.Contains(m)))
+        {
+            <video width="550" height="300" controls> 
+                <source src="@Model.MediaUrl" type="video/mp4"> 
+                Your browser does not support the video tag.
+            </video>
+        }
+        else
+        {
+            @if (!string.IsNullOrEmpty(Model.MediaUrl))
+            {
+                var videoId = ExtractYouTubeVideoId(Model.MediaUrl);
+                if (videoId != null)
+                {
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/@videoId" title="YouTube video player"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            allowfullscreen>
+                    </iframe>
+                }
+            }
+
+            @functions {
+            private string ExtractYouTubeVideoId(string url)
+                {
+                    var regex = new System.Text.RegularExpressions.Regex(@"(?:youtube\.com\/(?:[^\/]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})");
+                    var match = regex.Match(url);
+                    return match.Success ? match.Groups[1].Value : null;
+                }
+            }
+        }        
+    </div>
+</div>
