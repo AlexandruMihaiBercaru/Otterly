@@ -14,6 +14,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<ApplicationUser> ApplicationUsers => Set<ApplicationUser>();
     public DbSet<Models.Task> Tasks => Set<Models.Task>();
     public DbSet<Assignment> Assignments => Set<Assignment>();
+    public DbSet<Comment> Comments => Set<Comment>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

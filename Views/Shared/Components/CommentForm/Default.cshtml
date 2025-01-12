@@ -1,0 +1,12 @@
+@model CommentForm.Model
+
+<form
+    asp-controller="Tasks"
+    method="post"
+    asp-action="Comment"
+    asp-route-projectId="@Model.ProjectId"
+    asp-route-taskId="@Model.TaskId">
+    <textarea asp-for="Cmd.Content" class="form-control"></textarea>
+
+    <button type="submit" class="btn btn-primary">Comment</button>
+</form>

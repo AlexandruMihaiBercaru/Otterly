@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Proj.Data;
 
@@ -11,9 +12,11 @@ using Proj.Data;
 namespace Proj.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250111115603_ceva")]
+    partial class ceva
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -229,69 +232,6 @@ namespace Proj.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Proj.Models.Assignment", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("char(36)")
-                        .HasColumnName("user_id");
-
-                    b.Property<Guid>("TaskId")
-                        .HasColumnType("char(36)")
-                        .HasColumnName("task_id");
-
-                    b.Property<DateTimeOffset?>("AssignedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("assigned_at");
-
-                    b.HasKey("UserId", "TaskId");
-
-                    b.HasIndex("TaskId");
-
-                    b.ToTable("assignments", (string)null);
-                });
-
-            modelBuilder.Entity("Proj.Models.Comment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("content");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTimeOffset>("DeletedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<Guid>("TaskId")
-                        .HasColumnType("char(36)")
-                        .HasColumnName("task_id");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .ValueGeneratedOnUpdate()
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("updated_at");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("char(36)")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TaskId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("comments", (string)null);
-                });
-
             modelBuilder.Entity("Proj.Models.Label", b =>
                 {
                     b.Property<Guid>("Id")
@@ -503,44 +443,6 @@ namespace Proj.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Proj.Models.Assignment", b =>
-                {
-                    b.HasOne("Proj.Models.Task", "Task")
-                        .WithMany("Assignments")
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Proj.Models.ApplicationUser", "User")
-                        .WithMany("Assignments")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Task");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Proj.Models.Comment", b =>
-                {
-                    b.HasOne("Proj.Models.Task", "Task")
-                        .WithMany("Comments")
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Proj.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Task");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Proj.Models.Label", b =>
                 {
                     b.HasOne("Proj.Models.Project", null)
@@ -601,8 +503,6 @@ namespace Proj.Data.Migrations
 
             modelBuilder.Entity("Proj.Models.ApplicationUser", b =>
                 {
-                    b.Navigation("Assignments");
-
                     b.Navigation("Memberships");
                 });
 
@@ -615,10 +515,6 @@ namespace Proj.Data.Migrations
 
             modelBuilder.Entity("Proj.Models.Task", b =>
                 {
-                    b.Navigation("Assignments");
-
-                    b.Navigation("Comments");
-
                     b.Navigation("Subtasks");
                 });
 #pragma warning restore 612, 618

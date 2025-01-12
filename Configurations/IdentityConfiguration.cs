@@ -12,11 +12,18 @@ public static partial class Extensions
     {
         builder.Services.AddPolicy<OrganizerAuthorizationHandler>(OrganizerRequirement.Policy,
             policy => policy.Requirements.Add(new OrganizerRequirement()));
+        builder.Services.AddPolicy<MemberAuthorizationHandler>(MemberRequirement.Policy,
+            policy => policy.Requirements.Add(new MemberRequirement()));
 
         builder.Services
-            .AddDefaultIdentity<ApplicationUser>(opt => { opt.SignIn.RequireConfirmedAccount = true; })
+            .AddDefaultIdentity<ApplicationUser>(opt =>
+            {
+                opt.SignIn.RequireConfirmedAccount = true;
+            })
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
+
+        builder.Services.AddCurrentUser();
 
         return builder;
     }

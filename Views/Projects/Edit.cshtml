@@ -1,9 +1,9 @@
-﻿@model ProjectCommand.Create
+@model ProjectCommand.Edit
 @{
     Layout = "_Layout";
 }
 
-<form method="post" asp-action="New" asp-controller="Projects">
+<form method="post" asp-controller="Projects" asp-action="Edit" asp-route-projectId="@Model.Id">
     <div class="form-group">
         <label asp-for="Name" class="form-label">Project name</label>
         <input asp-for="Name" class="form-control"/>

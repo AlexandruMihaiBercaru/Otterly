@@ -1,0 +1,16 @@
+@model TaskCommand.ChangeStatus
+
+<form asp-action="ChangeStatus" method="post" asp-controller="Tasks" asp-route-projectId="@Model.ProjectId" asp-route-taskId="@Model.TaskId" style="display: contents;">
+    <input type="hidden" asp-for="TaskId" value="@Model.TaskId"/>
+    <input type="hidden" asp-for="ProjectId" value="@Model.ProjectId"/>
+
+    <li>
+        <button type="submit" name="NewStatus" value="Not Started" class="dropdown-item">Not Started</button>
+    </li>
+    <li>
+        <button type="submit" name="NewStatus" value="In Progress" class="dropdown-item">In Progress</button>
+    </li>
+    <li>
+        <button type="submit" name="NewStatus" value="Done" class="dropdown-item">Done</button>
+    </li>
+</form>

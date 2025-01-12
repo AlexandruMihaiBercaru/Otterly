@@ -1,41 +1,85 @@
 @model Proj.ViewModels.Projects.Settings
 
-@{
-    ViewBag.Title = "Setari";
-    Layout = "_Layout";
-}
+<main class="d-flex flex-column row-gap-5">
 
-@if (TempData["message"] is not null)
-{
-    <h1>Error @TempData["message"]</h1>
-}
+    @{
+        ViewBag.Title = "Setari";
+        Layout = "_Layout";
+    }
 
-<h2>settings</h2>
-@if (!Model.Memberships.Any())
-{
-    <p>You have no projects.</p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-        <tr>
-            <th>Name</th>
-            <th>Email</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var membership in Model.Memberships)
-        {
+    @if (TempData["message"] is not null)
+    {
+        <h1>Error @TempData["message"]</h1>
+    }
+
+    <h2>settings</h2>
+    @if (!Model.Memberships.Any())
+    {
+        <p>You have no projects.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
             <tr>
-                <td>@membership.User.FirstName @membership.User.LastName </td>
-                <td>@membership.User.Email</td>
+                <th>Name</th>
+                <th>Email</th>
             </tr>
-        }
-        </tbody>
-    </table>
-    <br/>
-}
+            </thead>
+            <tbody>
+            @foreach (var membership in Model.Memberships)
+            {
+                <tr>
+                    <td>@membership.User.FirstName @membership.User.LastName </td>
+                    <td>
+                        @membership.User.Email
+                        @if (membership.JoinedAt is null)
+                        {
+                            <span>(pending)</span>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <br/>
+    }
 
-<vc:invite-member-form project-id="@Model.ProjectId">
-</vc:invite-member-form>
+    <vc:invite-member-form project-id="@Model.Project.Id">
+    </vc:invite-member-form>
+
+    <section>
+        <h2>Danger area</h2>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Delete this project</h5>
+                <p class="card-text">Once you delete a project, there is no going back. Please be certain.</p>
+
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteProjectModal">
+                    Delete this project
+                </button>
+
+                <div class="modal fade" id="deleteProjectModal" tabindex="-1" aria-labelledby="deleteProjectModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="deleteProjectModalLabel">Delete @Model.Project.Name</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <h3>Are you sure?</h3>
+                            </div>
+
+                            <div class="modal-footer">
+                                <form method="post" asp-controller="Projects" asp-action="Delete" asp-route-projectId="@Model.Project.Id">
+                                    <button type="submit" class="btn btn-danger w-100">I want to delete this project</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>

@@ -15,169 +15,207 @@ using System.Threading.Tasks;
 namespace Proj.Controllers;
 
 [Route("projects/{projectId:guid}/tasks")]
+[Authorize(Policy = MemberRequirement.Policy)]
 public class TasksController : Controller
 {
     private readonly ApplicationDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
+    private readonly CurrentUser _user;
 
-    public TasksController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<Guid>> roleManager)
+    public TasksController(ApplicationDbContext context, CurrentUser user)
     {
         _context = context;
-        _userManager = userManager;
-        _roleManager = roleManager;
-    }
-
-    public IActionResult Index()
-    {
-        return View();
+        _user = user;
     }
 
     [HttpGet("{taskId:guid}")]
-    public IActionResult Show([FromRoute] Guid projectId, [FromRoute] Guid taskId)
+    public async Task<IActionResult> Show(
+        [FromRoute] Guid projectId,
+        [FromRoute] Guid taskId,
+        CancellationToken ct = default)
     {
         if (TempData.ContainsKey("message"))
         {
             ViewBag.Message = TempData["message"];
             ViewBag.Alert = TempData["messageType"];
         }
-        var task = _context.Tasks.Where(t => !t.DeletedAt.HasValue && t.Id == taskId).First();
-        // also need to add comments (activities) and labels!!!
+
+        var task = await _context.Tasks
+            .Include(t => t.Comments)
+            .ThenInclude(c => c.User)
+            .FirstOrDefaultAsync(t => !t.DeletedAt.HasValue && t.Id == taskId, ct);
+        if (task is null)
+        {
+            return NotFound();
+        }
+        // also need to add labels!!!
 
         return View(task);
     }
 
     // doar organizatorul proiectului poate adauga un task la un proiect
     [HttpGet("new")]
-    public IActionResult New([FromRoute] Guid projectId)
-    {
-        if(checkOrganizer(projectId) == true)
-        {
-            //ShowOrganizerButtons(projectId);
-            return View();
-        }
-        else
-        {
-            TempData["message"] = "You are not allowed to add a new task to the project!";
-            TempData["messageType"] = "alert-danger";
-            return Redirect($"/projects/{projectId}");
-        }
-    }
-
+    [Authorize(Policy = OrganizerRequirement.Policy)]
+    public IActionResult New([FromRoute] Guid projectId) => View();
 
     [HttpPost("new")]
-    public async Task<IActionResult> New([FromRoute] Guid projectId, 
-                                         TaskCommand.Create cmd,
-                                         CancellationToken ct = default)
+    [Authorize(Policy = OrganizerRequirement.Policy)]
+    public async Task<IActionResult> New(
+        [FromRoute] Guid projectId,
+        TaskCommand.Create cmd,
+        CancellationToken ct = default)
     {
-        var sanitizer = new HtmlSanitizer();
+        var task = Models.Task.From(cmd, projectId);
 
-        if(ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            var task = Models.Task.From(cmd, projectId);
-            task.Description = sanitizer.Sanitize(task.Description);
-            _context.Tasks.Add(task);
-            await _context.SaveChangesAsync(ct);
-            TempData["message"] = "The new task has just been successfully added.";
-            TempData["messageType"] = "alert-success";
-            return Redirect($"/projects/{projectId}");
-        }
-        else
-        {
-            var task = Models.Task.From(cmd, projectId);
             return View(task);
         }
-    }
 
-    [HttpGet("{taskId:guid}/edit")]
-    public IActionResult Edit([FromRoute] Guid projectId, [FromRoute] Guid taskId)
-    {
-        if (checkOrganizer(projectId) == true)
-        {
-            var task = _context.Tasks.Where(t => !t.DeletedAt.HasValue && t.Id == taskId).First();
-            // add comments and labels!
-            return View(task);
-        }
-        else
-        {
-            TempData["message"] = "You are not allowed to edit the tasks assigned to this project!";
-            TempData["messageType"] = "alert-danger";
-            return Redirect($"/projects/{projectId}");
-        }
-    }
-
-    [HttpPost("{taskId:guid}/edit")]
-    public IActionResult Edit([FromRoute] Guid projectId, [FromRoute] Guid taskId, TaskCommand.Create cmd)
-    {
         var sanitizer = new HtmlSanitizer();
-        var requestTask = Models.Task.From(cmd, projectId);
-        Models.Task task = _context.Tasks.Find(taskId);
-        if (ModelState.IsValid)
-        {
-            if (checkOrganizer(projectId) == true)
-            {
-                task.Name = requestTask.Name;
-                task.Description = sanitizer.Sanitize(requestTask.Description); ;
-                task.MediaUrl = requestTask.MediaUrl;
-                task.StartDate = requestTask.StartDate;
-                task.EndDate = requestTask.EndDate;
-                task.UpdatedAt = DateTimeOffset.UtcNow;
+        task.Description = sanitizer.Sanitize(task.Description);
+        await _context.Tasks.AddAsync(task, ct);
+        await _context.SaveChangesAsync(ct);
 
-                TempData["message"] = "The task has been modified";
-                TempData["messageType"] = "alert-success";
-
-                _context.SaveChanges();
-                return Redirect($"/projects/{projectId}");
-            }
-            else
-            {
-                TempData["message"] = "You are not allowed to edit the tasks assigned to this project!";
-                TempData["messageType"] = "alert-danger";
-                return Redirect($"/projects/{projectId}");
-            }
-        }
-        else
-        {
-            return View(requestTask);
-        }
-    }
-
-    private bool checkOrganizer(Guid pId)
-    {
-        var userId = new Guid(_userManager.GetUserId(User));
-        var project = _context.Projects
-                            .Where(p => p.Id == pId && !p.DeletedAt.HasValue)
-                            .First();
-        return userId == project.OrganizerId; 
-    }
-
-    private void ShowOrganizerButtons(Guid Id)
-    {
-        ViewBag.ShowButtons = false;
-        if(checkOrganizer(Id))
-        {
-            ViewBag.ShowButtons = true;
-        }
-    }
-    
-    //[Route("/tasks/changestatus", Name ="changestaskstatus")]
-    [HttpPost("/changestatus")]
-    public IActionResult ChangeStatus(Guid projectId, 
-                                      Guid taskId, 
-                                      int newStatus)
-    {
-        var task = _context.Tasks.Where(t => !t.DeletedAt.HasValue && t.Id == taskId).First();
-        if (task != null)
-        {
-            if(newStatus == 1)
-                task.Status = "Not Started";
-            if (newStatus == 2)
-                task.Status = "In Progress";
-            if (newStatus == 3)
-                task.Status = "Done";
-            _context.SaveChanges();
-        }
+        TempData["message"] = "The new task has just been successfully added.";
+        TempData["messageType"] = "alert-success";
         return Redirect($"/projects/{projectId}");
     }
 
+    [HttpGet("{taskId:guid}/edit")]
+    [Authorize(Policy = OrganizerRequirement.Policy)]
+    public async Task<IActionResult> Edit(
+        [FromRoute] Guid projectId,
+        [FromRoute] Guid taskId,
+        CancellationToken ct = default)
+    {
+        var task = await _context.Tasks
+            .FirstOrDefaultAsync(t => !t.DeletedAt.HasValue && t.Id == taskId, ct);
+        // add labels!
+        return View(task);
+    }
+
+    [HttpPost("{taskId:guid}/edit")]
+    [Authorize(Policy = OrganizerRequirement.Policy)]
+    public async Task<IActionResult> Edit(
+        [FromRoute] Guid projectId,
+        [FromRoute] Guid taskId,
+        TaskCommand.Create cmd, CancellationToken ct = default)
+    {
+        var task = await _context.Tasks.FindAsync([taskId], ct);
+        if (task is null)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(Models.Task.From(cmd, projectId));
+        }
+
+        task.Name = cmd.Name;
+        var sanitizer = new HtmlSanitizer();
+        task.Description = sanitizer.Sanitize(cmd.Description);
+        task.MediaUrl = cmd.MediaUrl;
+        task.StartDate = cmd.StartDate;
+        task.EndDate = cmd.EndDate;
+        task.UpdatedAt = DateTimeOffset.UtcNow;
+
+        TempData["message"] = "The task has been modified";
+        TempData["messageType"] = "alert-success";
+
+        await _context.SaveChangesAsync(ct);
+        return Redirect($"/projects/{projectId}");
+    }
+
+    [HttpPost("change-status")]
+    public async Task<IActionResult> ChangeStatus(
+        [FromRoute] Guid projectId,
+        [FromForm] TaskCommand.ChangeStatus cmd,
+        CancellationToken ct = default)
+    {
+        var task = await _context.Tasks
+            .FirstOrDefaultAsync(t => !t.DeletedAt.HasValue && t.Id == cmd.TaskId, ct);
+        if (task is null)
+        {
+            return NotFound();
+        }
+
+        task.Status = cmd.NewStatus;
+        await _context.SaveChangesAsync(ct);
+
+        return Redirect($"/projects/{projectId}");
+    }
+
+    [HttpPost("{taskId:guid}/comment")]
+    public async Task<IActionResult> Comment(
+        [FromRoute] Guid projectId,
+        [FromRoute] Guid taskId,
+        [FromForm] CommentCommand.New cmd,
+        CancellationToken ct = default)
+    {
+        if (!ModelState.IsValid)
+        {
+            return Redirect($"/projects/{projectId}/tasks/{taskId}");
+        }
+
+        var comment = new Comment(taskId, _user.Id, cmd.Content);
+        await _context.Comments.AddAsync(comment, ct);
+        await _context.SaveChangesAsync(ct);
+
+        return Redirect($"/projects/{projectId}/tasks/{taskId}");
+    }
+
+    [HttpPost("{taskId:guid}/comment/{commentId:guid}")]
+    public async Task<IActionResult> EditComment(
+        [FromRoute] Guid projectId,
+        [FromRoute] Guid taskId,
+        [FromRoute] Guid commentId,
+        [FromForm] CommentCommand.New cmd,
+        CancellationToken ct = default)
+    {
+        if (!ModelState.IsValid)
+        {
+            return Redirect($"/projects/{projectId}/tasks/{taskId}");
+        }
+
+        var comment = await _context.Comments
+            .FirstOrDefaultAsync(c => c.Id == commentId, ct);
+        if (comment is null)
+        {
+            return NotFound();
+        }
+
+        if (!_user.IsAdmin && comment.UserId != _user.Id)
+        {
+            return Unauthorized();
+        }
+
+        comment.Content = cmd.Content;
+        _context.Comments.Update(comment);
+        await _context.SaveChangesAsync(ct);
+
+        return Redirect($"/projects/{projectId}/tasks/{taskId}");
+    }
+
+    [HttpPost("{taskId:guid}/comment/{commentId:guid}/delete")]
+    public async Task<IActionResult> DeleteComment([FromRoute] Guid projectId, Guid taskId,
+        Guid commentId, CancellationToken ct = default)
+    {
+        var comment = await _context.Comments
+            .FirstOrDefaultAsync(c => c.Id == commentId, ct);
+        if (comment is null)
+        {
+            return NotFound();
+        }
+
+        if (!_user.IsAdmin && comment.UserId != _user.Id)
+        {
+            return Unauthorized();
+        }
+
+        _context.Comments.Remove(comment);
+        await _context.SaveChangesAsync(ct);
+
+        return Redirect($"/projects/{projectId}/tasks/{taskId}");
+    }
 }

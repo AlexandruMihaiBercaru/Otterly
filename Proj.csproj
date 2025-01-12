@@ -35,6 +35,7 @@
       <_ContentIncludedByDefault Remove="Views\Shared\_Layout.cshtml" />
       <_ContentIncludedByDefault Remove="Views\Shared\_LoginPartial.cshtml" />
       <_ContentIncludedByDefault Remove="Views\Shared\_ValidationScriptsPartial.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Tasks\Index.cshtml" />
     </ItemGroup>
 
     <ItemGroup>

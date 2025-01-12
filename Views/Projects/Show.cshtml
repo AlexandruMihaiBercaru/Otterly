@@ -1,8 +1,9 @@
+@using Proj.Identity
+@model Proj.Models.Project
+@inject CurrentUser CurrentUser
 @{
     Layout = "_Layout";
 }
-
-@model Proj.Models.Project
 
 @if (ViewBag.Message != null)
 {
@@ -12,210 +13,93 @@
     </div>
 }
 
-<h3><b>@Model.Name</b></h3>
+<h3>
+    <b>@Model.Name</b>
+</h3>
 
 
 <div class="container mt-5 mx-5">
-
     <div class="row">
-
         <div class="col-12">
-
             <div class="card">
-                <div class="card-header">
-                    <p>Owner:<b><!--get the email (or first name + last name) of the User--></b></p>
-                </div>
                 <div class="card-body">
-                    <h3 class="card-title"><b>@Model.Name</b></h3>
+                    <h3 class="card-title">
+                        <b>@Model.Name</b>
+                    </h3>
                     <p class="card-text">@Model.Summary</p>
-                    <!--Only if the current user is Admin or is the organizer of the project, then show the edit button-->
-                    <a asp-controller="Projects" asp-action="Edit" class="btn btn-primary">Edit</a>
-
-                    <a href="@Model.Id/tasks/new" class="btn btn-primary">Add a Task</a>
+                    @if (Model.OrganizerId == CurrentUser.Id || CurrentUser.IsAdmin)
+                    {
+                        <a asp-controller="Projects" asp-action="Edit" asp-route-projectId="@Model.Id" class="btn btn-primary">Edit</a>
+                        <a asp-controller="Projects" asp-action="Settings" asp-route-projectId="@Model.Id"
+                           class="btn btn-link">
+                            Settings
+                        </a>
+                        <a href="@Model.Id/tasks/new" class="btn btn-primary">Add a Task</a>
+                    }
                 </div>
                 <div class="card-footer text-body-secondary">
-                    <small><i class="float-end">Last updated: @Model.UpdatedAt.LocalDateTime</i></small>
+                    <small>
+                        <i class="float-end">Last updated: @Model.UpdatedAt.LocalDateTime</i>
+                    </small>
                 </div>
             </div>
-
         </div>
-
     </div>
-    <br />
+
+    <br/>
+
     <div class="row gx-5">
-
-        <div class="col-md-4">
-            <div class="card">
-                <h5 class="card-header text-center text-bg-secondary border-secondary">Not Started</h5>
-                <div class="card-body">                 
-                    <ul class="list-group list-group-flush p-2">
-
-                        @foreach(var task in Model.Tasks)
-                        {
-                            if (task.Status.Equals("Not Started"))
+        @foreach (var column in new[] { new { status = "Not Started", color = "bg-tertiary" }, new { status = "In Progress", color = "bg-warning" }, new { status = "Done", color = "bg-success" } })
+        {
+            <div class="col-md-4">
+                <div class="card">
+                    <h5 class="card-header text-center text-bg-secondary border-secondary @column.color">@column.status</h5>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush p-2">
+                            @foreach (var task in Model.Tasks.Where(t => t.Status == column.status))
                             {
                                 <li class="list-group-item">
-
                                     <div class="d-flex justify-content-between flex-row mt-5">
-
                                         <div class="dropstart">
-                                            <button id="dropdownButton_@task.Id"
-                                                    onclick="location.href='@Model.Id/tasks/@task.Id';"
-                                                    class="btn btn-secondary dropdown-toggle dropdown-toggle-hover"
-                                                    aria-expanded="false">
-                                                @task.Name
-                                            </button>
-                                            <ul class="dropdown-menu"> <!--modify the links!-->
-                                                <li><h6 class="dropdown-header">Change the status</h6></li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li>
-                                                    <form action="@Url.Action("ChangeStatus", "Tasks", new { projectId = Model.Id, taskId = task.Id, newStatus = 1 })" method="post">
-                                                    <button type="submit" class="dropdown-item">Not Started</button>
-                                                    </form>
-                                                <li>
-                                                <li>
-                                                    <form action="@Url.Action("ChangeStatus", "Tasks", new { projectId = Model.Id, taskId = task.Id, newStatus = 2 })" method="post">
-                                                        <button type="submit" class="dropdown-item">In Progress</button>
-                                                    </form>
-                                                <li>
-                                                <li>
-                                                    <form action="@Url.Action("ChangeStatus", "Tasks", new { projectId = Model.Id, taskId = task.Id, newStatus = 3 })" method="post">
-                                                        <button type="submit" class="dropdown-item">Done</button>
-                                                    </form>
-                                                <li>
-                                             
-                                            </ul>
-                                        </div>
-                                    </div>
-
-                                </li>
-                            }
-                        }
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card">
-                <h5 class="card-header text-center text-bg-secondary border-secondary">In Progress</h5>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush p-2">
-
-                        @foreach (var task in Model.Tasks)
-                        {
-                            if (task.Status.Equals("In Progress"))
-                            {
-                                <li class="list-group-item">
-
-                                    <div class="d-flex justify-content-between flex-row mt-5">
-
-                                        <div class="dropstart">
-                                            <button id="dropdownButton_@task.Id"
-                                                    onclick="location.href='@Model.Id/tasks/@task.Id';"
-                                                    class="btn btn-secondary dropdown-toggle dropdown-toggle-hover"
-                                                    aria-expanded="false">
-                                                @task.Name
+                                            <button type="button" class="btn btn-secondary dropdown-toggle"
+                                                    data-bs-toggle="dropdown" aria-expanded="false">
                                             </button>
                                             <ul class="dropdown-menu">
-                                                <!--modify the links!-->
-                                                <li><h6 class="dropdown-header">Change the status</h6></li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li><a class="dropdown-item" href="@Model.Id/tasks/@task.Id/changestatus/1">Not Started</a></li>
-                                                <li><a class="dropdown-item" href="@Model.Id/tasks/@task.Id/changestatus/2">In Progress</a></li>
-                                                <li><a class="dropdown-item" href="@Model.Id/tasks/@task.Id/changestatus/3">Done</a></li>
+                                                <li>
+                                                    <h6 class="dropdown-header">Change the status</h6>
+                                                </li>
+                                                <li>
+                                                    <hr class="dropdown-divider">
+                                                </li>
+
+                                                <vc:change-status-form project-id="@task.ProjectId" task-id="@task.Id"></vc:change-status-form>
                                             </ul>
                                         </div>
-
-                                    </div>
-
-                                </li>
-                            }
-                        }
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card">
-                <h5 class="card-header text-center text-bg-secondary border-secondary">Done</h5>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush p-2">
-
-                        @foreach (var task in Model.Tasks)
-                        {
-                            if (task.Status.Equals("Done"))
-                            {
-                                <li class="list-group-item">
-
-                                    <div class="d-flex justify-content-between flex-row mt-5">
-
-                                        <div class="dropstart">
-                                            <button id="dropdownButton_@task.Id"
-                                                    onclick="location.href='@Model.Id/tasks/@task.Id';"
-                                                    class="btn btn-secondary dropdown-toggle dropdown-toggle-hover"
-                                                    aria-expanded="false">
+                                        <div class="card-text">
+                                            <a asp-controller="Tasks" asp-action="Show" asp-route-taskId="@task.Id" asp-route-projectId="@task.ProjectId">
                                                 @task.Name
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <!--modify the links!-->
-                                                <li><h6 class="dropdown-header">Change the status</h6></li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li><a class="dropdown-item" href="@Model.Id/tasks/@task.Id/changestatus/1">Not Started</a></li>
-                                                <li><a class="dropdown-item" href="@Model.Id/tasks/@task.Id/changestatus/2">In Progress</a></li>
-                                                <li><a class="dropdown-item" href="@Model.Id/tasks/@task.Id/changestatus/3">Done</a></li>
-                                            </ul>
+                                            </a>
                                         </div>
-
+                                        <div>
+                                            @if (CurrentUser.Id == @Model.OrganizerId || CurrentUser.IsAdmin)
+                                            {
+                                                <a class="btn btn-success"
+                                                   asp-controller="Tasks"
+                                                   asp-action="Edit"
+                                                   asp-route-projectId="@task.ProjectId"
+                                                   asp-route-taskId="@task.Id"
+                                                   asp-route-id="@task.Id">
+                                                    Edit
+                                                </a>
+                                            }
+                                        </div>
                                     </div>
-
                                 </li>
                             }
-                        }
-                    </ul>
+                        </ul>
+                    </div>
                 </div>
             </div>
-        </div>
-
+        }
     </div>
-
 </div>
-
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const dropdownButtons = document.querySelectorAll('.dropdown-toggle-hover');
-
-        dropdownButtons.forEach(function (dropdownButton) {
-            const dropdownMenu = dropdownButton.nextElementSibling;
-
-            let hideTimeout;
-
-            dropdownButton.addEventListener('mouseover', function () {
-                clearTimeout(hideTimeout);
-                const dropdown = new bootstrap.Dropdown(dropdownButton);
-                dropdown.show();
-            });
-
-            dropdownButton.addEventListener('mouseout', function () {
-                hideTimeout = setTimeout(function () {
-                    const dropdown = new bootstrap.Dropdown(dropdownButton);
-                    dropdown.hide();
-                }, 200); 
-            });
-
-
-            dropdownMenu.addEventListener('mouseover', function () {
-                clearTimeout(hideTimeout);
-            });
-
-            dropdownMenu.addEventListener('mouseout', function () {
-                hideTimeout = setTimeout(function () {
-                    const dropdown = new bootstrap.Dropdown(dropdownButton);
-                    dropdown.hide();
-                }, 200);
-            });
-        });
-    });
-</script>

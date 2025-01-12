@@ -1,0 +1,19 @@
+@using Microsoft.IdentityModel.Tokens
+@model IEnumerable<Membership>
+
+@if (Model.IsNullOrEmpty())
+{
+    <p>Casuta este goala</p>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var membership in Model)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <h5>@membership.Project.Name</h5>
+                <vc:invitation-actions-form project-id="@membership.ProjectId"></vc:invitation-actions-form>
+            </li>
+        }
+    </ul>
+}

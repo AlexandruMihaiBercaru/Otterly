@@ -6,6 +6,7 @@ using Proj.Data;
 using Proj.Identity;
 using Proj.Models;
 using Proj.ViewModels;
+using Task = System.Threading.Tasks.Task;
 
 namespace Proj.Controllers;
 
@@ -14,45 +15,40 @@ public class ProjectsController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
-    private readonly ILogger<ProjectsController> _logger;
+    private readonly CurrentUser _user;
 
-    public ProjectsController(ApplicationDbContext context,
+    public ProjectsController(
+        ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole<Guid>> roleManager, ILogger<ProjectsController> logger)
+        CurrentUser user)
     {
         _context = context;
         _userManager = userManager;
-        _roleManager = roleManager;
-        _logger = logger;
+        _user = user;
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(CancellationToken ct = default)
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user is null) return Unauthorized();
-
-        if (await _userManager.IsInRoleAsync(user, "Admin"))
+        if (_user.IsAdmin)
         {
-            var adminProjects =
-                await _context.Memberships
-                    .Where(m => !m.Project.DeletedAt.HasValue)
-                    .Include(m => m.Project)
-                    .ToListAsync();
+            var adminProjects = await _context.Projects.ToListAsync(ct);
             return View(adminProjects);
         }
 
         var projects = await _context.Memberships
-            .Where(m => !m.EndedAt.HasValue && m.UserId == user.Id && m.JoinedAt.HasValue)
-            .Include(m => m.Project)
-            .ToListAsync();
+            .Where(m => !m.EndedAt.HasValue && m.UserId == _user.Id && m.JoinedAt.HasValue)
+            .Select(m => m.Project)
+            .ToListAsync(ct);
 
         return View(projects);
     }
 
-    [HttpGet("{id:guid}")]
-    public IActionResult Show([FromRoute] Guid id)
+    [HttpGet("{projectId:guid}")]
+    [Authorize(Policy = MemberRequirement.Policy)]
+    public async Task<IActionResult> Show(
+        [FromRoute] Guid projectId,
+        CancellationToken ct = default)
     {
         if (TempData.ContainsKey("message"))
         {
@@ -60,9 +56,10 @@ public class ProjectsController : Controller
             ViewBag.Alert = TempData["messageType"];
         }
 
-        var project = _context.Projects.Include("Tasks")
+        var project = await _context.Projects
+            .Include(p => p.Tasks)
             .Where(p => !p.DeletedAt.HasValue)
-            .FirstOrDefault(p => p.Id == id);
+            .FirstOrDefaultAsync(p => p.Id == projectId, ct);
         if (project is null)
         {
             return NotFound();
@@ -76,24 +73,17 @@ public class ProjectsController : Controller
 
     [HttpPost("new")]
     public async Task<IActionResult> New(
-        ProjectCommand.Create cmd,
+        [FromForm] ProjectCommand.Create cmd,
         CancellationToken ct = default)
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user is null)
-        {
-            return Unauthorized();
-        }
-
-
         if (!ModelState.IsValid)
         {
             return View();
         }
 
-        var (project, membership) = Project.From(cmd, user!.Id);
-        _context.Projects.Add(project);
-        _context.Memberships.Add(membership);
+        var (project, membership) = Project.From(cmd, _user.Id);
+        await _context.Projects.AddAsync(project, ct);
+        await _context.Memberships.AddAsync(membership, ct);
         await _context.SaveChangesAsync(ct);
 
         TempData["message"] = "The project has been successfully added.";
@@ -102,16 +92,64 @@ public class ProjectsController : Controller
         return Redirect($"/projects/{project.Id}");
     }
 
+    [HttpGet("edit/{projectId:guid}")]
+    public async Task<IActionResult> Edit(
+        [FromRoute] Guid projectId,
+        CancellationToken ct = default)
+    {
+        var project = await _context.Projects.FindAsync([projectId], ct);
+        if (project is null)
+        {
+            return NotFound();
+        }
+
+        return View(new ProjectCommand.Edit(project.Id, project.Name, project.Summary));
+    }
+
+    [HttpPost("edit/{projectId:guid}")]
+    public async Task<IActionResult> Edit(
+        [FromRoute] Guid projectId,
+        [FromForm] ProjectCommand.Edit cmd,
+        CancellationToken ct = default)
+    {
+        var project = await _context.Projects.FindAsync([projectId], ct);
+        if (project is null)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(new ProjectCommand.Edit(project.Id, project.Name, project.Summary));
+        }
+
+        project.Edit(cmd);
+        await _context.SaveChangesAsync(ct);
+
+        TempData["message"] = "The project has been modified";
+        TempData["messageType"] = "alert-success";
+        return Redirect($"/projects/{projectId}");
+    }
+
     [HttpGet("{projectId:guid}/settings")]
     [Authorize(Policy = OrganizerRequirement.Policy)]
-    public async Task<IActionResult> Settings([FromRoute] Guid projectId)
+    public async Task<IActionResult> Settings(
+        [FromRoute] Guid projectId,
+        CancellationToken ct = default
+    )
     {
+        var project = await _context.Projects.FindAsync([projectId], ct);
+        if (project is null)
+        {
+            return NotFound();
+        }
+
         var members = await _context.Memberships
             .Where(m => m.ProjectId == projectId && !m.EndedAt.HasValue)
             .Include(m => m.User)
-            .ToListAsync();
+            .ToListAsync(ct);
 
-        return View(new Projects.Settings(members, projectId));
+        return View(new Projects.Settings(project, members));
     }
 
     [HttpPost("{projectId:guid}/settings/invite-member")]
@@ -121,12 +159,6 @@ public class ProjectsController : Controller
         [FromForm] ProjectCommand.InviteMember cmd,
         CancellationToken ct = default)
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user is null)
-        {
-            return Unauthorized();
-        }
-
         var project = await _context.Projects
             .Where(p => p.Id == projectId && !p.DeletedAt.HasValue)
             .Include(p => p.Memberships)
@@ -138,14 +170,13 @@ public class ProjectsController : Controller
 
         if (!ModelState.IsValid)
         {
-            _logger.LogInformation("invalid model");
             return RedirectToAction("Settings", new { projectId });
         }
 
         var invitee = await _userManager.FindByEmailAsync(cmd.Email);
         if (invitee is null)
-        {            
-            TempData["toastError"] = $"User with email address {cmd.Email} does not exist.";           
+        {
+            TempData["toastError"] = $"User with email address {cmd.Email} does not exist.";
             return RedirectToAction("Settings", new { projectId });
         }
 
@@ -165,11 +196,61 @@ public class ProjectsController : Controller
         }
     }
 
+    [HttpPost("{projectId:guid}/invitations")]
+    public async Task<IActionResult> HandleInvitationRespose(
+        [FromRoute] Guid projectId,
+        [FromForm] ProjectCommand.HandleInvitationRespose cmd,
+        CancellationToken ct = default
+    )
+    {
+        if (!ModelState.IsValid)
+        {
+            return RedirectToAction("Index", "Inbox");
+        }
+
+        var user = await _context.ApplicationUsers
+            .AsNoTracking()
+            .Include(u =>
+                u.Memberships.Where(m => !m.JoinedAt.HasValue))
+            .FirstOrDefaultAsync(u => u.Id == _user.Id, ct);
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        var membership = user.Memberships
+            .FirstOrDefault(m => m.ProjectId == cmd.ProjectId);
+
+        if (cmd.Intent == "accept")
+        {
+            var accepted = user.Accept(membership);
+            _context.Entry(accepted).State = EntityState.Modified;
+        }
+        else
+        {
+            _context.Entry(membership).State = EntityState.Deleted;
+        }
+
+        await _context.SaveChangesAsync(ct);
+
+        return RedirectToAction("Index", "Inbox");
+    }
+
     [HttpPost("{projectId:guid}/delete")]
     [Authorize(Policy = OrganizerRequirement.Policy)]
-    public async Task<IActionResult> Delete([FromRoute] Guid projectId,
+    public async Task<IActionResult> Delete(
+        [FromRoute] Guid projectId,
         CancellationToken ct = default)
     {
-        return View();
+        var project = await _context.Projects.FindAsync([projectId], ct);
+        if (project is null)
+        {
+            return NotFound();
+        }
+
+        _context.Projects.Remove(project);
+        await _context.SaveChangesAsync(ct);
+
+        return Redirect("/projects");
     }
 }

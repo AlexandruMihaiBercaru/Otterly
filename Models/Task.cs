@@ -1,6 +1,7 @@
 ﻿using Microsoft.Identity.Client;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Proj.Models.Validation;
 
 namespace Proj.Models;
 
@@ -17,10 +18,19 @@ public static class TaskCommand
         string Status,
         [Required(ErrorMessage = "Adaugati data de inceput.")]
         DateTimeOffset StartDate,
-        [Required(ErrorMessage = "Adaugati data de finalizare.")]
+        [Required(ErrorMessage = "Adaugati data de finalizare."),
+         SameOrAfter(nameof(StartDate),
+             errorMessage: "Data de sfarsit trebuie sa fie dupa cea de inceput")]
         DateTimeOffset EndDate,
         [Required(ErrorMessage = "Adaugati continut.")]
         string MediaUrl
+    );
+
+    public record ChangeStatus(
+        [Required] Guid TaskId,
+        [Required] Guid ProjectId,
+        [Required, OneOf("Not Started", "In Progress", "Done")]
+        string NewStatus
     );
 }
 
@@ -49,6 +59,8 @@ public class Task : IValidatableObject
     [NotMapped] public ICollection<Task> Subtasks { get; } = new List<Task>();
 
     public ICollection<Assignment>? Assignments { get; set; }
+
+    public IEnumerable<Comment> Comments { get; set; } = new List<Comment>();
 
 
     Task()
