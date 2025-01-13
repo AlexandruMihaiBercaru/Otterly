@@ -4,7 +4,7 @@
 
 @{
     Layout = "_Layout";
-    ViewData["Title"] = "My Projects";
+    ViewData["Title"] = CurrentUser.IsAdmin ? "Projects" : "My Projects";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -21,6 +21,7 @@ else
             <th>Project Name</th>
             <th>Summary</th>
             <th>Created at</th>
+            <th></th>
         </tr>
         </thead>
         <tbody>

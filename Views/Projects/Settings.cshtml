@@ -2,7 +2,7 @@
 
 <main class="d-flex flex-column row-gap-5">
 
-    @{  
+    @{
         ViewBag.Title = "Members";
         Layout = "_Layout";
     }
@@ -29,24 +29,28 @@
             <tbody>
             @foreach (var membership in Model.Memberships)
             {
-                if(membership.UserId == membership.Project.OrganizerId)
+                if (membership.UserId == membership.Project.OrganizerId)
                 {
                     <tr>
-                        <td><b>@membership.User.FirstName @membership.User.LastName (Organiser)</b></td>
-                        <td><b>@membership.User.Email</b></td>
+                        <td>
+                            <b>@membership.User.FirstName @membership.User.LastName (Organiser)</b>
+                        </td>
+                        <td>
+                            <b>@membership.User.Email</b>
+                        </td>
                     </tr>
                 }
                 else
                 {
                     <tr>
-                    <td>@membership.User.FirstName @membership.User.LastName </td>
-                    <td>
-                        @membership.User.Email
-                        @if (membership.JoinedAt is null)
-                        {
-                            <span>(pending)</span>
-                        }
-                    </td>
+                        <td>@membership.User.FirstName @membership.User.LastName </td>
+                        <td>
+                            @membership.User.Email
+                            @if (membership.JoinedAt is null)
+                            {
+                                <span>(pending)</span>
+                            }
+                        </td>
                     </tr>
                 }
             }
@@ -57,6 +61,12 @@
 
     <vc:invite-member-form project-id="@Model.Project.Id">
     </vc:invite-member-form>
+
+    <section>
+        <h2>Labels</h2>
+
+        <vc:labels-table project-id="@Model.Project.Id"></vc:labels-table>
+    </section>
 
     <section>
         <h2>Danger area</h2>

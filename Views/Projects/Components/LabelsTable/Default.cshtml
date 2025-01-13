@@ -1,0 +1,36 @@
+@model Proj.Views.Projects.Components.LabelsTable.ViewModel
+
+@if (!Model.Labels.Any())
+{
+    <p>You have no labels.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Color</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var label in Model.Labels)
+        {
+            <tr>
+                <td>@label.Name</td>
+                <td>
+                    <vc:label name="@label.Color" color="@label.Color"></vc:label>
+                </td>
+
+            </tr>
+        }
+        <tr>
+            <td>
+                <vc:add-label-form project-id="@Model.ProjectId"></vc:add-label-form>
+            </td>
+            <td></td>
+        </tr>
+        </tbody>
+    </table>
+    <br/>
+}

@@ -1,0 +1,44 @@
+@model Proj.Views.Projects.Components.AddLabelForm.ViewModel
+
+<button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#addLabelModal">
+    <span>Add</span>
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+    </svg>
+</button>
+
+
+<div class="modal fade" id="addLabelModal" tabindex="-1" aria-labelledby="addLabelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="addLabelModalLabel">Add a label</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form method="post" asp-controller="Labels" asp-action="New" asp-route-projectId="@Model.ProjectId">
+                <div class="modal-body">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+
+                    <div class="form-group">
+                        <label asp-for="@Model.Cmd.Name" class="form-label">Name</label>
+                        <input asp-for="@Model.Cmd.Name" class="form-control" placeholder="Add a new label..."/>
+                        <span asp-validation-for="@Model.Cmd.Name" class="text-danger"></span>
+                        <br/>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="@Model.Cmd.Color" class="form-label">Choose a Color:</label>
+                        <input asp-for="@Model.Cmd.Color" type="color" class="form-control form-control-color" id="exampleColorInput" title="Pick a color:">
+                        <span asp-validation-for="@Model.Cmd.Color" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary w-100" type="submit">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

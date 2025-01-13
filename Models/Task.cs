@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Proj.Models.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Proj.Models;
 
@@ -24,27 +25,29 @@ public static class TaskCommand
              errorMessage: "Data de sfarsit trebuie sa fie dupa cea de inceput")]
         DateTimeOffset EndDate,
         [Required(ErrorMessage = "Adaugati continut.")]
-        string MediaUrl
+        string MediaUrl,
+        Guid? LabelId
     );
 
     public record Edit(
         Guid Id,
         [Required(ErrorMessage = "Numele task-ului este obligatoriu.")]
-            [StringLength(50)]
-            string Name,
+        [StringLength(50)]
+        string Name,
         [StringLength(512)]
-            [Required(ErrorMessage = "Task-ul treuie sa aiba o descriere.")]
-            string Description,
+        [Required(ErrorMessage = "Task-ul treuie sa aiba o descriere.")]
+        string Description,
         [Required(ErrorMessage = "Statusul este obligatoriu.")]
-            string Status,
+        string Status,
         [Required(ErrorMessage = "Adaugati data de inceput.")]
-            DateTimeOffset StartDate,
+        DateTimeOffset StartDate,
         [Required(ErrorMessage = "Adaugati data de finalizare."),
-             SameOrAfter(nameof(StartDate),
-                 errorMessage: "Data de sfarsit trebuie sa fie dupa cea de inceput")]
-            DateTimeOffset EndDate,
+         SameOrAfter(nameof(StartDate),
+             errorMessage: "Data de sfarsit trebuie sa fie dupa cea de inceput")]
+        DateTimeOffset EndDate,
         [Required(ErrorMessage = "Adaugati continut.")]
-            string MediaUrl
+        string MediaUrl,
+        Guid? LabelId
     );
 
     public record ChangeStatus(
@@ -55,7 +58,7 @@ public static class TaskCommand
     );
 }
 
-public class Task 
+public class Task
 {
     public Guid Id { get; private init; } = Guid.NewGuid();
     public string Name { get; set; }
@@ -68,7 +71,8 @@ public class Task
     public string MediaUrl { get; set; }
     public Guid ProjectId { get; init; } // Required FK
     public Guid? ParentTaskId { get; init; }
-    public Guid? LabelId { get; init; }
+    public Guid? LabelId { get; set; }
+    public Label? Label { get; set; } = default;
 
 
     public virtual Project? Project { get; set; }
@@ -83,8 +87,7 @@ public class Task
 
     public IEnumerable<Comment> Comments { get; set; } = new List<Comment>();
 
-    [NotMapped]
-    public IEnumerable<SelectListItem>? ProjectMembers { get; set; }
+    [NotMapped] public IEnumerable<SelectListItem>? ProjectMembers { get; set; }
 
 
     Task()
@@ -92,7 +95,8 @@ public class Task
     }
 
     private Task(string name, string description, string status,
-        DateTimeOffset startDate, DateTimeOffset endDate, string media, Guid projectId)
+        DateTimeOffset startDate, DateTimeOffset endDate, string media, Guid projectId,
+        Guid? labelId)
     {
         Name = name;
         Description = description;
@@ -101,12 +105,13 @@ public class Task
         EndDate = endDate;
         MediaUrl = media;
         ProjectId = projectId;
+        LabelId = labelId;
     }
 
     public static Task From(TaskCommand.Create cmd, Guid projectId)
     {
         var task = new Task(cmd.Name, cmd.Description, cmd.Status,
-            cmd.StartDate, cmd.EndDate, cmd.MediaUrl, projectId);
+            cmd.StartDate, cmd.EndDate, cmd.MediaUrl, projectId, cmd.LabelId);
         return task;
     }
 

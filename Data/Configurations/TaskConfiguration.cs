@@ -26,7 +26,7 @@ public sealed class TaskConfiguration : IEntityTypeConfiguration<Models.Task>
         task.Property(t => t.EndDate).HasColumnName("end_date").IsRequired();
 
         task.Property(t => t.UpdatedAt).HasColumnName("updated_at").ValueGeneratedOnUpdate();
-        
+
         task.Property(t => t.DeletedAt).HasColumnName("deleted_at");
 
         task.Property(t => t.MediaUrl).HasColumnName("media_url").IsRequired();
@@ -37,7 +37,6 @@ public sealed class TaskConfiguration : IEntityTypeConfiguration<Models.Task>
 
         task.Property(t => t.LabelId).HasColumnName("label_id");
 
-        
 
         // one-to-many relation: a projects has multiple tasks
 
@@ -50,7 +49,7 @@ public sealed class TaskConfiguration : IEntityTypeConfiguration<Models.Task>
         // one-to-many relation: a label can be attached to multiple tasks
         // each task can only have one label
         task
-            .HasOne<Label>()
+            .HasOne<Label>(l => l.Label)
             .WithMany()
             .HasForeignKey(t => t.LabelId);
 

@@ -28,7 +28,8 @@ public static class CurrentUserExtensions
 
     private sealed class ClaimsTransformation(
         CurrentUser currentUser,
-        UserManager<ApplicationUser> userManager) : IClaimsTransformation
+        UserManager<ApplicationUser> userManager
+    ) : IClaimsTransformation
     {
         public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
         {

@@ -1,0 +1,61 @@
+@model SelectLabel.ViewModel
+
+<div class="dropdown">
+    <button
+        class="btn btn-link border-secondary-subtle dropdown-toggle"
+        type="button"
+        id="dropdownMenuButton"
+        data-bs-toggle="dropdown"
+        aria-expanded="false">
+        <span id="dropdownMenuContent">
+            @if (Model.Default is not null)
+            {
+                <span class="badge" style="background: @Model.Default.Color;"> </span>
+                <span>@Model.Default.Name</span>
+            }
+            else
+            {
+                <span>select a label</span>
+            }
+        </span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <li>
+            <a class="dropdown-item" href="#" data-value="" data-color="" data-name="-">-</a>
+        </li>
+        @foreach (var opt in Model.Options)
+        {
+            <li>
+                <a class="dropdown-item" href="#" data-value="@opt.Id" data-color="@opt.Color" data-name="@opt.Name">
+                    <div>
+                        <span class="badge" style="background: @opt.Color;"> </span>
+                        <span>@opt.Name</span>
+                    </div>
+                </a>
+            </li>
+        }
+    </ul>
+    <input type="hidden" name="@Model.Name" value="@(Model.Default?.Id.ToString() ?? "")" id="selectedOption">
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const items = document.querySelectorAll(".dropdown-item");
+        const field = document.querySelector("#dropdownMenuContent");
+        const input = document.querySelector("#selectedOption");
+        
+        for (const item of items) {
+            item.addEventListener("click", (evt) => {
+                evt.preventDefault();
+                const value = item.getAttribute("data-value");
+                const color = item.getAttribute("data-color");
+                const name = item.getAttribute("data-name");
+                field.innerHTML = !value ? `<span>select a label</span>` : `<span>
+                    <span class="badge" style="background: ${color};"> </span>
+                    <span>${name}</span>
+                </span>`; 
+                input.value = value;
+            });
+        }
+    });
+</script>

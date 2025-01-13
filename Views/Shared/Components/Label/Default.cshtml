@@ -1,0 +1,6 @@
+@model Proj.Views.Shared.Components.Label.ViewModel
+
+<span class="badge"
+      style="background: @Model.Color; color: oklch(from @Model.Color clamp(0, calc((l - 0.714) * -1000), 1) 0 0);">
+    @Model.Name
+</span>

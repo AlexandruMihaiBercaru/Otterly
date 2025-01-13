@@ -4,7 +4,17 @@
 
 <div class="card border-success mb-3">
     <div class="card-header">
-        <h3 class="card-title alert-success py-3 px-3 rounded-2"><b>@Model.Name</b></h3>
+        <h3 class="card-title alert-success py-3 px-3 rounded-2">
+            <b>@Model.Name</b>
+            @if (Model.Label is not null)
+            {
+                <span class="fs-5">
+                    <span class="badge" style="background: @Model.Label.Color;"> </span>
+                    <span>@Model.Label.Name</span>
+                </span>
+            }
+        </h3>
+        <a href="/projects/@Model.ProjectId/tasks/@Model.Id/edit">Edit</a>
         <div class="d-flex justify-content-between flex-row mt-5">
             <small class="alert-success">
                 <b>Starts on: @Model.StartDate.Date.ToShortDateString()</b>
@@ -13,10 +23,10 @@
             <small class="alert-success">
                 <b>Ends on: @Model.EndDate.Date.ToShortDateString()</b>
             </small>
-        </div>        
+        </div>
     </div>
     <div class="card-body p-3">
-        
+
 
         @if (Model.Project.OrganizerId == CurrentUser.Id || CurrentUser.IsAdmin)
         {
@@ -26,26 +36,25 @@
                   asp-route-projectId="@Model.ProjectId">
 
                 <div class="d-flex flex-row justify-content-center p-3 border-1 border-top">
-                      <div class="mb-3">
+                    <div class="mb-3">
                         <select class="form-select form-control" name="userId" asp-items="Model.ProjectMembers">
                             <option value="">Add a new member to this task</option>
                         </select>
-                        
-                      </div>
+
+                    </div>
                     <div>
-                        <input type="submit" class="btn btn-success alert-success" value="+" />
+                        <input type="submit" class="btn btn-success alert-success" value="+"/>
                     </div>
                 </div>
             </form>
         }
-        
 
 
         <div class="card mt-3 mb-3 p-3">
             <div class="card-text">@Html.Raw(Model.Description)</div>
         </div>
-        <br />
-        <div  class="d-flex align-items-center justify-content-center">
+        <br/>
+        <div class="d-flex align-items-center justify-content-center">
             @if (new string[] { ".png", ".jpeg", ".jpg" }.Any(m => Model.MediaUrl.Contains(m)))
             {
                 <img src="@Model.MediaUrl" alt="Embedded image" width="550" height="300"/>
@@ -103,8 +112,11 @@
                             <div id="comment-content-@comment.Id" style="display: flex;" class="justify-content-between align-items-start">
                                 <div>
                                     <h6 class="mb-1 text-muted">
-                                            @comment.User.FirstName @comment.User.LastName <small><i>@comment.User.Email</i></small>
-                                        </h6>
+                                        @comment.User.FirstName @comment.User.LastName
+                                        <small>
+                                            <i>@comment.User.Email</i>
+                                        </small>
+                                    </h6>
                                     <p class="mb-1">@comment.Content</p>
                                 </div>
 
@@ -149,11 +161,11 @@
                         </li>
                     }
                 </ul>
-                <br />
+                <br/>
             }
 
             <vc:comment-form project-id="@Model.ProjectId" task-id="@Model.Id"></vc:comment-form>
-            
+
         </div>
         <br/>
 

@@ -1,0 +1,39 @@
+@model IEnumerable<ApplicationUser>
+
+@{
+    ViewBag.Title = "Utilizatori";
+    Layout = "_Layout";
+}
+
+@if (!Model.Any())
+{
+    <h2>Nu exista utilizatori</h2>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Id</td>
+                <td>@user.FirstName @user.LastName</td>
+                <td>@user.Email</td>
+                <td>
+                    <form method="post" asp-controller="Admin" asp-action="Impersonate" asp-route-userId="@user.Id">
+                        <button class="btn btn-primary">Login as</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

@@ -6,7 +6,6 @@ using Proj.Data;
 using Proj.Identity;
 using Proj.Models;
 using Proj.ViewModels;
-using Task = System.Threading.Tasks.Task;
 
 namespace Proj.Controllers;
 
@@ -57,11 +56,7 @@ public class ProjectsController : Controller
         }
 
         var project = await _context.Projects
-            .Include(p => p.Tasks.Where(t => !t.DeletedAt.HasValue))
-            .ThenInclude(t => t.Assignments)
-            .ThenInclude(a => a.User)
-            .Where(p => !p.DeletedAt.HasValue)
-            .FirstOrDefaultAsync(p => p.Id == projectId, ct);
+            .FirstOrDefaultAsync(p => !p.DeletedAt.HasValue && p.Id == projectId, ct);
         if (project is null)
         {
             return NotFound();

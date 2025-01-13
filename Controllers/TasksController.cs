@@ -1,18 +1,11 @@
 ﻿using Ganss.Xss;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Build.Evaluation;
-using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Proj.Data;
 using Proj.Identity;
 using Proj.Models;
-using Proj.ViewModels;
-using System.Security.Cryptography.Pkcs;
-using System.Threading.Tasks;
-
 
 namespace Proj.Controllers;
 
@@ -45,35 +38,38 @@ public class TasksController : Controller
             .Include(t => t.Project)
             .Include(t => t.Comments)
             .ThenInclude(c => c.User)
+            .Include(t => t.Label)
             .FirstOrDefaultAsync(t => !t.DeletedAt.HasValue && t.Id == taskId, ct);
         if (task is null)
         {
             return NotFound();
         }
-        // also need to add labels!!!
 
         task.ProjectMembers = GetMembersUnassignedToTask(projectId, taskId);
         return View(task);
     }
 
-    // doar organizatorul proiectului poate adauga un task la un proiect
     [HttpGet("new")]
     [Authorize(Policy = OrganizerRequirement.Policy)]
-    public IActionResult New([FromRoute] Guid projectId) => View();
+    public IActionResult New([FromRoute] Guid projectId)
+    {
+        ViewBag.ProjectId = projectId;
+        return View();
+    }
 
     [HttpPost("new")]
     [Authorize(Policy = OrganizerRequirement.Policy)]
     public async Task<IActionResult> New(
         [FromRoute] Guid projectId,
-        TaskCommand.Create cmd,
+        [FromForm] TaskCommand.Create cmd,
         CancellationToken ct = default)
     {
-        var task = Models.Task.From(cmd, projectId);
-
         if (!ModelState.IsValid)
         {
             return View();
         }
+
+        var task = Models.Task.From(cmd, projectId);
 
         var sanitizer = new HtmlSanitizer();
         task.Description = sanitizer.Sanitize(task.Description);
@@ -94,10 +90,17 @@ public class TasksController : Controller
     {
         var task = await _context.Tasks
             .FirstOrDefaultAsync(t => !t.DeletedAt.HasValue && t.Id == taskId, ct);
-        // add labels!
-        return View(new TaskCommand.Edit(task.Id, task.Name, task.Description,
-                                         task.Status, task.StartDate, task.EndDate,
-                                         task.MediaUrl));
+        if (task is null)
+        {
+            return NotFound();
+        }
+
+        ViewBag.ProjectId = projectId;
+
+        return View(
+            new TaskCommand.Edit(task.Id, task.Name, task.Description,
+                task.Status, task.StartDate, task.EndDate,
+                task.MediaUrl, task.LabelId));
     }
 
     [HttpPost("{taskId:guid}/edit")]
@@ -116,8 +119,8 @@ public class TasksController : Controller
         if (!ModelState.IsValid)
         {
             return View(new TaskCommand.Edit(task.Id, task.Name, task.Description,
-                                         task.Status, task.StartDate, task.EndDate,
-                                         task.MediaUrl));
+                task.Status, task.StartDate, task.EndDate,
+                task.MediaUrl, task.LabelId));
         }
 
         task.Name = cmd.Name;
@@ -127,6 +130,7 @@ public class TasksController : Controller
         task.StartDate = cmd.StartDate;
         task.EndDate = cmd.EndDate;
         task.UpdatedAt = DateTimeOffset.UtcNow;
+        task.LabelId = cmd.LabelId;
 
         TempData["message"] = "The task has been modified";
         TempData["messageType"] = "alert-success";
@@ -242,8 +246,8 @@ public class TasksController : Controller
         {
             return NotFound();
         }
+
         task.DeletedAt = DateTimeOffset.UtcNow;
-        //_context.Projects.Remove(project);
         await _context.SaveChangesAsync(ct);
 
         TempData["message"] = "Task deleted.";
@@ -253,45 +257,43 @@ public class TasksController : Controller
     }
 
 
-
     [HttpPost("{taskId:guid}/assign")]
     [Authorize(Policy = OrganizerRequirement.Policy)]
-    public async Task<IActionResult> AssignTask([FromForm] String userId,
-                                                [FromRoute] Guid taskId,
-                                                [FromRoute] Guid projectId,
-                                                CancellationToken ct = default)
+    public async Task<IActionResult> AssignTask(
+        [FromRoute] Guid taskId,
+        [FromRoute] Guid projectId,
+        [FromForm] string userId,
+        CancellationToken ct = default)
     {
-        if(ModelState.IsValid)
-        {
-            var assignment = new Assignment
-            {
-                UserId = new Guid(userId),
-                TaskId = taskId
-            };
-            await _context.Assignments.AddAsync(assignment, ct);
-            await _context.SaveChangesAsync(ct);
-            TempData["message"] = "The task was successfully assigned.";
-            TempData["messageType"] = "alert-success";
-            return Redirect($"/projects/{projectId}");
-        }
-        else
+        if (!ModelState.IsValid)
         {
             return Redirect($"/projects/{projectId}/tasks/{taskId}");
         }
+
+        await _context.Assignments.AddAsync(new()
+        {
+            UserId = new Guid(userId),
+            TaskId = taskId
+        }, ct);
+        await _context.SaveChangesAsync(ct);
+
+        TempData["message"] = "The task was successfully assigned.";
+        TempData["messageType"] = "alert-success";
+        return Redirect($"/projects/{projectId}");
     }
 
 
     [NonAction]
-    public IEnumerable<SelectListItem> GetMembersUnassignedToTask(Guid projectId, Guid taskId)
+    private IEnumerable<SelectListItem> GetMembersUnassignedToTask(Guid projectId, Guid taskId)
     {
         var selectList = new List<SelectListItem>();
         var members = _context.ApplicationUsers
-                              .Where(u => u.Memberships
-                                           .Any(m => !m.EndedAt.HasValue &&  
-                                                     m.ProjectId == projectId && 
-                                                     m.JoinedAt.HasValue)) 
-                              .Where(u => !u.Assignments
-                                           .Any(a => a.TaskId == taskId)); 
+            .Where(u => u.Memberships
+                .Any(m => !m.EndedAt.HasValue &&
+                          m.ProjectId == projectId &&
+                          m.JoinedAt.HasValue))
+            .Where(u => !u.Assignments
+                .Any(a => a.TaskId == taskId));
         foreach (var mem in members)
         {
             selectList.Add(new SelectListItem
@@ -300,6 +302,7 @@ public class TasksController : Controller
                 Text = mem.FirstName + " " + mem.LastName + " (" + mem.Email + ")"
             });
         }
+
         return selectList;
     }
 }
