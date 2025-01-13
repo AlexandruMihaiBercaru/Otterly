@@ -29,22 +29,29 @@
                         </small>
                     </div>
 
-                    <div class="card-footer row text-center">
+                    <div class="card-footer d-flex justify-content-between">
                         @if (Model.OrganizerId == CurrentUser.Id || CurrentUser.IsAdmin)
                         {
-                            <div class="col-4">
-                            <a asp-controller="Projects" asp-action="Edit" asp-route-projectId="@Model.Id" class="btn btn-primary">Edit Project</a>
+                            <div class="p-2">
+                                <a asp-controller="Projects" asp-action="Edit" asp-route-projectId="@Model.Id" class="btn btn-primary">Edit Project</a>
                             </div>
 
-                            <div class="col-4">
-                            <a asp-controller="Projects" asp-action="Settings" asp-route-projectId="@Model.Id"
-                               class="btn btn-info">
-                                Project Settings
-                            </a>
+                            <div class="p-2">
+                                <a asp-controller="Projects" asp-action="Settings" asp-route-projectId="@Model.Id"
+                                   class="btn btn-info">
+                                    Project Settings
+                                </a>
                             </div>
 
-                            <div class="col-4">
-                            <a href="@Model.Id/tasks/new" class="btn btn-primary">New Task</a>
+                            <div class="p-2">
+                                <a href="@Model.Id/tasks/new" class="btn btn-primary">New Task</a>
+                            </div>
+                        }
+
+                        @if (Model.OrganizerId == CurrentUser.Id)
+                        {
+                            <div class="p-2">
+                                <a href="@Model.Id/addlabel" class="btn btn-info">New label</a>
                             </div>
                         }
                     </div>
@@ -52,6 +59,9 @@
             </div>
         </div>
     </div>
+    <br />
+
+
 
     <br/>
 

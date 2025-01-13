@@ -7,10 +7,10 @@ public static class LabelCommand
 {
     public record Create(
         [StringLength(32)]
-        [Required (ErrorMessage = "Numele etichetei este necesar")]
+        [Required (ErrorMessage = "Numele etichetei este necesar.")]
         string Name,
 
-        [Required]
+        [Required (ErrorMessage = "Trebuie sa adaugati o culoare.")]
         [StringLength(maximumLength: 7)]
         [RegularExpression("#[A-Fa-f0-9]{6}")]
         string Color
