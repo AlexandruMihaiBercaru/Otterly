@@ -8,13 +8,10 @@
             <b>@Model.Name</b>
             @if (Model.Label is not null)
             {
-                <span class="fs-5">
-                    <span class="badge" style="background: @Model.Label.Color;"> </span>
-                    <span>@Model.Label.Name</span>
-                </span>
+                <vc:label name="@Model.Label.Name" color="@Model.Label.Color"></vc:label>
             }
         </h3>
-        <a href="/projects/@Model.ProjectId/tasks/@Model.Id/edit">Edit</a>
+
         <div class="d-flex justify-content-between flex-row mt-5">
             <small class="alert-success">
                 <b>Starts on: @Model.StartDate.Date.ToShortDateString()</b>
