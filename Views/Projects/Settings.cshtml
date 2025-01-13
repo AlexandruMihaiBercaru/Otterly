@@ -2,8 +2,8 @@
 
 <main class="d-flex flex-column row-gap-5">
 
-    @{
-        ViewBag.Title = "Setari";
+    @{  
+        ViewBag.Title = "Members";
         Layout = "_Layout";
     }
 
@@ -12,7 +12,7 @@
         <h1>Error @TempData["message"]</h1>
     }
 
-    <h2>settings</h2>
+    <h3>@ViewBag.Title</h3>
     @if (!Model.Memberships.Any())
     {
         <p>You have no projects.</p>
@@ -29,7 +29,16 @@
             <tbody>
             @foreach (var membership in Model.Memberships)
             {
-                <tr>
+                if(membership.UserId == membership.Project.OrganizerId)
+                {
+                    <tr>
+                        <td><b>@membership.User.FirstName @membership.User.LastName (Organiser)</b></td>
+                        <td><b>@membership.User.Email</b></td>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
                     <td>@membership.User.FirstName @membership.User.LastName </td>
                     <td>
                         @membership.User.Email
@@ -38,7 +47,8 @@
                             <span>(pending)</span>
                         }
                     </td>
-                </tr>
+                    </tr>
+                }
             }
             </tbody>
         </table>

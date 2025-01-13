@@ -6,9 +6,21 @@
     @if (SignInManager.IsSignedIn(User))
     {
         <li class="nav-item">
+            @{
+                var currentUser = await UserManager.GetUserAsync(User);
+            }
+
+            @* Display Hello with FirstName and LastName if they exist *@
             <a class="nav-link" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">
-                Hello
-                @User.Identity?.Name!
+                Hello,
+                @if (!string.IsNullOrEmpty(currentUser.FirstName) && !string.IsNullOrEmpty(currentUser.LastName))
+                {
+                    @: @currentUser.FirstName!
+                }
+                else
+                {
+                    @: @User.Identity?.Name!
+                }
             </a>
         </li>
         <li class="nav-item">

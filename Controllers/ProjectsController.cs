@@ -57,7 +57,9 @@ public class ProjectsController : Controller
         }
 
         var project = await _context.Projects
-            .Include(p => p.Tasks)
+            .Include(p => p.Tasks.Where(t => !t.DeletedAt.HasValue))
+            .ThenInclude(t => t.Assignments)
+            .ThenInclude(a => a.User)
             .Where(p => !p.DeletedAt.HasValue)
             .FirstOrDefaultAsync(p => p.Id == projectId, ct);
         if (project is null)

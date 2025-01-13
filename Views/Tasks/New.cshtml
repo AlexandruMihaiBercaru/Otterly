@@ -1,4 +1,4 @@
-﻿@model Proj.Models.Task
+﻿@model TaskCommand.Create
 
 
 <h2 class="text-center mt-5">New task</h2>
@@ -43,7 +43,7 @@
         </div>
 
         <div class="form-group">
-            <label asp-for="MediaUrl" class="form-label">Add a link (to a picture, video or another page):</label>
+            <label asp-for="MediaUrl" class="form-label">Add some media (a picture from the web, a youtube video...):</label>
             <input type="url" asp-for="MediaUrl" name="MediaUrl" class="form-control" placeholder="https://example.com" />
             <span asp-validation-for="StartDate" class="text-danger"></span>
         </div>

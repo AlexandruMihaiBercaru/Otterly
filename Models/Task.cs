@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Proj.Models.Validation;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Proj.Models;
 
@@ -26,6 +27,26 @@ public static class TaskCommand
         string MediaUrl
     );
 
+    public record Edit(
+        Guid Id,
+        [Required(ErrorMessage = "Numele task-ului este obligatoriu.")]
+            [StringLength(50)]
+            string Name,
+        [StringLength(512)]
+            [Required(ErrorMessage = "Task-ul treuie sa aiba o descriere.")]
+            string Description,
+        [Required(ErrorMessage = "Statusul este obligatoriu.")]
+            string Status,
+        [Required(ErrorMessage = "Adaugati data de inceput.")]
+            DateTimeOffset StartDate,
+        [Required(ErrorMessage = "Adaugati data de finalizare."),
+             SameOrAfter(nameof(StartDate),
+                 errorMessage: "Data de sfarsit trebuie sa fie dupa cea de inceput")]
+            DateTimeOffset EndDate,
+        [Required(ErrorMessage = "Adaugati continut.")]
+            string MediaUrl
+    );
+
     public record ChangeStatus(
         [Required] Guid TaskId,
         [Required] Guid ProjectId,
@@ -34,7 +55,7 @@ public static class TaskCommand
     );
 }
 
-public class Task : IValidatableObject
+public class Task 
 {
     public Guid Id { get; private init; } = Guid.NewGuid();
     public string Name { get; set; }
@@ -43,24 +64,27 @@ public class Task : IValidatableObject
     public DateTimeOffset StartDate { get; set; }
     public DateTimeOffset EndDate { get; set; }
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
-    public DateTimeOffset? DeletedAt { get; private set; }
+    public DateTimeOffset? DeletedAt { get; set; }
     public string MediaUrl { get; set; }
     public Guid ProjectId { get; init; } // Required FK
     public Guid? ParentTaskId { get; init; }
     public Guid? LabelId { get; init; }
 
 
-    public Project? Project { get; set; }
+    public virtual Project? Project { get; set; }
 
     // navigation property referencing the parent task (if it exists)
-    [NotMapped] public Task? ParentTask { get; set; }
+    [NotMapped] public virtual Task? ParentTask { get; set; }
 
     // collection navigation containing the subtasks for each task
-    [NotMapped] public ICollection<Task> Subtasks { get; } = new List<Task>();
+    [NotMapped] public virtual ICollection<Task> Subtasks { get; } = new List<Task>();
 
-    public ICollection<Assignment>? Assignments { get; set; }
+    public virtual ICollection<Assignment>? Assignments { get; set; }
 
     public IEnumerable<Comment> Comments { get; set; } = new List<Comment>();
+
+    [NotMapped]
+    public IEnumerable<SelectListItem>? ProjectMembers { get; set; }
 
 
     Task()
@@ -86,6 +110,7 @@ public class Task : IValidatableObject
         return task;
     }
 
+    /*
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (DateTimeOffset.Compare(StartDate, EndDate) == -1)
@@ -96,4 +121,5 @@ public class Task : IValidatableObject
         yield return new ValidationResult(
             "Data de inceput trebuie sa fie mai mica decat data de finalizare");
     }
+    */
 }

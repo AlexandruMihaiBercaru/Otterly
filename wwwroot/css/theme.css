@@ -162,3 +162,40 @@
     --bs-toast-header-bg: var(--catppuccin-surface0);
 }
 
+
+
+.task-main-page-link {
+    background-color: #94e2d530;
+    width: 70% !important;
+    min-width: 150px !important;
+    max-width: 300px !important;
+    height: 50px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center;
+    flex-direction: column;
+    border-radius: 5px !important;
+    transition: background-color 0.5s ease;
+    border-color: black !important;
+    border-width: 3px !important;
+}
+
+    .task-main-page-link > a {
+        display: block;
+        height: 100%;
+        width: 100%;
+        text-decoration: none !important;
+        color: #11111b;
+        text-align: center !important;
+        font-size: 115%;
+    }
+
+    .task-main-page-link:hover {
+        background-color: #94e2d5FF;
+    }
+
+.list-group-item.task-details {
+    background-color: #6c708620;
+}

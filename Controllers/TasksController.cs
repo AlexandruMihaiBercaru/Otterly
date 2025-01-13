@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Build.Evaluation;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Proj.Data;
@@ -40,6 +42,7 @@ public class TasksController : Controller
         }
 
         var task = await _context.Tasks
+            .Include(t => t.Project)
             .Include(t => t.Comments)
             .ThenInclude(c => c.User)
             .FirstOrDefaultAsync(t => !t.DeletedAt.HasValue && t.Id == taskId, ct);
@@ -49,6 +52,7 @@ public class TasksController : Controller
         }
         // also need to add labels!!!
 
+        task.ProjectMembers = GetMembersUnassignedToTask(projectId, taskId);
         return View(task);
     }
 
@@ -68,7 +72,7 @@ public class TasksController : Controller
 
         if (!ModelState.IsValid)
         {
-            return View(task);
+            return View();
         }
 
         var sanitizer = new HtmlSanitizer();
@@ -91,7 +95,9 @@ public class TasksController : Controller
         var task = await _context.Tasks
             .FirstOrDefaultAsync(t => !t.DeletedAt.HasValue && t.Id == taskId, ct);
         // add labels!
-        return View(task);
+        return View(new TaskCommand.Edit(task.Id, task.Name, task.Description,
+                                         task.Status, task.StartDate, task.EndDate,
+                                         task.MediaUrl));
     }
 
     [HttpPost("{taskId:guid}/edit")]
@@ -99,7 +105,7 @@ public class TasksController : Controller
     public async Task<IActionResult> Edit(
         [FromRoute] Guid projectId,
         [FromRoute] Guid taskId,
-        TaskCommand.Create cmd, CancellationToken ct = default)
+        [FromForm] TaskCommand.Edit cmd, CancellationToken ct = default)
     {
         var task = await _context.Tasks.FindAsync([taskId], ct);
         if (task is null)
@@ -109,7 +115,9 @@ public class TasksController : Controller
 
         if (!ModelState.IsValid)
         {
-            return View(Models.Task.From(cmd, projectId));
+            return View(new TaskCommand.Edit(task.Id, task.Name, task.Description,
+                                         task.Status, task.StartDate, task.EndDate,
+                                         task.MediaUrl));
         }
 
         task.Name = cmd.Name;
@@ -126,6 +134,7 @@ public class TasksController : Controller
         await _context.SaveChangesAsync(ct);
         return Redirect($"/projects/{projectId}");
     }
+
 
     [HttpPost("change-status")]
     public async Task<IActionResult> ChangeStatus(
@@ -164,6 +173,7 @@ public class TasksController : Controller
 
         return Redirect($"/projects/{projectId}/tasks/{taskId}");
     }
+
 
     [HttpPost("{taskId:guid}/comment/{commentId:guid}")]
     public async Task<IActionResult> EditComment(
@@ -217,5 +227,79 @@ public class TasksController : Controller
         await _context.SaveChangesAsync(ct);
 
         return Redirect($"/projects/{projectId}/tasks/{taskId}");
+    }
+
+
+    [HttpPost("{taskId:guid}/delete")]
+    [Authorize(Policy = OrganizerRequirement.Policy)]
+    public async Task<IActionResult> Delete(
+        [FromRoute] Guid taskId,
+        [FromRoute] Guid projectId,
+        CancellationToken ct = default)
+    {
+        var task = await _context.Tasks.FindAsync([taskId], ct);
+        if (task is null)
+        {
+            return NotFound();
+        }
+        task.DeletedAt = DateTimeOffset.UtcNow;
+        //_context.Projects.Remove(project);
+        await _context.SaveChangesAsync(ct);
+
+        TempData["message"] = "Task deleted.";
+        TempData["messageType"] = "alert-success";
+
+        return Redirect($"/projects/{projectId}");
+    }
+
+
+
+    [HttpPost("{taskId:guid}/assign")]
+    [Authorize(Policy = OrganizerRequirement.Policy)]
+    public async Task<IActionResult> AssignTask([FromForm] String userId,
+                                                [FromRoute] Guid taskId,
+                                                [FromRoute] Guid projectId,
+                                                CancellationToken ct = default)
+    {
+        if(ModelState.IsValid)
+        {
+            var assignment = new Assignment
+            {
+                UserId = new Guid(userId),
+                TaskId = taskId
+            };
+            await _context.Assignments.AddAsync(assignment, ct);
+            await _context.SaveChangesAsync(ct);
+            TempData["message"] = "The task was successfully assigned.";
+            TempData["messageType"] = "alert-success";
+            return Redirect($"/projects/{projectId}");
+        }
+        else
+        {
+            return Redirect($"/projects/{projectId}/tasks/{taskId}");
+        }
+    }
+
+
+    [NonAction]
+    public IEnumerable<SelectListItem> GetMembersUnassignedToTask(Guid projectId, Guid taskId)
+    {
+        var selectList = new List<SelectListItem>();
+        var members = _context.ApplicationUsers
+                              .Where(u => u.Memberships
+                                           .Any(m => !m.EndedAt.HasValue &&  
+                                                     m.ProjectId == projectId && 
+                                                     m.JoinedAt.HasValue)) 
+                              .Where(u => !u.Assignments
+                                           .Any(a => a.TaskId == taskId)); 
+        foreach (var mem in members)
+        {
+            selectList.Add(new SelectListItem
+            {
+                Value = mem.Id.ToString(),
+                Text = mem.FirstName + " " + mem.LastName + " (" + mem.Email + ")"
+            });
+        }
+        return selectList;
     }
 }

@@ -13,11 +13,6 @@
     </div>
 }
 
-<h3>
-    <b>@Model.Name</b>
-</h3>
-
-
 <div class="container mt-5 mx-5">
     <div class="row">
         <div class="col-12">
@@ -25,22 +20,34 @@
                 <div class="card-body">
                     <h3 class="card-title">
                         <b>@Model.Name</b>
-                    </h3>
+                    </h3>                 
                     <p class="card-text">@Model.Summary</p>
-                    @if (Model.OrganizerId == CurrentUser.Id || CurrentUser.IsAdmin)
-                    {
-                        <a asp-controller="Projects" asp-action="Edit" asp-route-projectId="@Model.Id" class="btn btn-primary">Edit</a>
-                        <a asp-controller="Projects" asp-action="Settings" asp-route-projectId="@Model.Id"
-                           class="btn btn-link">
-                            Settings
-                        </a>
-                        <a href="@Model.Id/tasks/new" class="btn btn-primary">Add a Task</a>
-                    }
-                </div>
-                <div class="card-footer text-body-secondary">
-                    <small>
-                        <i class="float-end">Last updated: @Model.UpdatedAt.LocalDateTime</i>
-                    </small>
+
+                    <div class="card-text text-body-secondary">
+                        <small>
+                            <i>Last updated: @Model.UpdatedAt.Date.ToShortDateString()</i>
+                        </small>
+                    </div>
+
+                    <div class="card-footer row text-center">
+                        @if (Model.OrganizerId == CurrentUser.Id || CurrentUser.IsAdmin)
+                        {
+                            <div class="col-4">
+                            <a asp-controller="Projects" asp-action="Edit" asp-route-projectId="@Model.Id" class="btn btn-primary">Edit Project</a>
+                            </div>
+
+                            <div class="col-4">
+                            <a asp-controller="Projects" asp-action="Settings" asp-route-projectId="@Model.Id"
+                               class="btn btn-info">
+                                Project Settings
+                            </a>
+                            </div>
+
+                            <div class="col-4">
+                            <a href="@Model.Id/tasks/new" class="btn btn-primary">New Task</a>
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
@@ -58,7 +65,7 @@
                         <ul class="list-group list-group-flush p-2">
                             @foreach (var task in Model.Tasks.Where(t => t.Status == column.status))
                             {
-                                <li class="list-group-item">
+                                <li class="list-group-item task-details mb-3">
                                     <div class="d-flex justify-content-between flex-row mt-5">
                                         <div class="dropstart">
                                             <button type="button" class="btn btn-secondary dropdown-toggle"
@@ -75,7 +82,7 @@
                                                 <vc:change-status-form project-id="@task.ProjectId" task-id="@task.Id"></vc:change-status-form>
                                             </ul>
                                         </div>
-                                        <div class="card-text">
+                                        <div class="task-main-page-link">
                                             <a asp-controller="Tasks" asp-action="Show" asp-route-taskId="@task.Id" asp-route-projectId="@task.ProjectId">
                                                 @task.Name
                                             </a>
@@ -83,7 +90,7 @@
                                         <div>
                                             @if (CurrentUser.Id == @Model.OrganizerId || CurrentUser.IsAdmin)
                                             {
-                                                <a class="btn btn-success"
+                                                <a class="btn btn-sm btn-outline-success"
                                                    asp-controller="Tasks"
                                                    asp-action="Edit"
                                                    asp-route-projectId="@task.ProjectId"
@@ -94,7 +101,19 @@
                                             }
                                         </div>
                                     </div>
+                                    <div class="mt-3">   
+                                        <h6>Assigned to: </h6>
+                                        @foreach(var assignment in task.Assignments)
+                                        {
+                                            <div>
+                                                <i>
+                                                    @assignment.User.FirstName @assignment.User.LastName
+                                                </i>
+                                            </div>
+                                        }
+                                    </div>
                                 </li>
+                                
                             }
                         </ul>
                     </div>

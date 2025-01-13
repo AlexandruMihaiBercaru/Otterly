@@ -91,5 +91,6 @@ public class Project
     {
         Name = cmd.Name;
         Summary = cmd.Summary;
+        UpdatedAt = DateTimeOffset.Now;
     }
 }
